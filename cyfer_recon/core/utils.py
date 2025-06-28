@@ -14,7 +14,7 @@ def save_targets(targets: List[str], path: str = 'targets.txt') -> None:
         for t in targets:
             f.write(f"{t}\n")
 
-def prepare_output_dirs(base_dir: str, selected_tasks: List[str]) -> str:
+def prepare_output_dirs(base_dir: str, target: str, selected_tasks: List[str]) -> str:
     """
     Create the main output directory and subfolders for each task.
     Returns the path to the output directory.
