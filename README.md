@@ -7,49 +7,53 @@ A modular, extensible Python CLI tool for cybersecurity and bug bounty automatio
 ## 🚀 Features
 - **Multi-Target Input:** Enter targets manually or load from file
 - **Task Selection:** Choose from 20+ recon tasks via interactive menu
-- **Tool Availability Check:** Verifies required tools, suggests install commands
+- **Tool Availability Check:** Verifies required tools, suggests install commands, and can auto-install for you
 - **Concurrent/Sequential Execution:** Choose your preferred mode
 - **Organized Output:** Results saved per target in structured folders
 - **Modern UI:** Uses `rich`, `questionary`, and `typer` for a great UX
+- **Global CLI:** Usable from anywhere on your system after setup
+- **Kali Linux Ready:** Designed and tested for Kali Linux
 
 ---
 
-## 📦 Installation
+## 📦 Installation & Global Setup (Kali Linux)
 
 1. **Clone the repo:**
    ```bash
-   git clone https://github.com/yourusername/cyfer-recon-script.git
+   git clone https://github.com/griffin-dox/Cyfer_Recon_Script
    cd cyfer-recon-script
    ```
-2. **Install Python dependencies:**
+2. **Run the setup script:**
    ```bash
-   pip install -r requirements.txt
-   # Or manually:
-   pip install typer rich questionary
+   chmod +x setup.sh
+   sudo ./setup.sh
    ```
-3. **Install external tools:**
-   - The tool will check for required binaries and suggest install commands for missing ones.
-   - See `config/tools.json` for all supported tools and install instructions.
+   This will:
+   - Install Python dependencies
+   - Create a global symlink `/usr/local/bin/cyfer-recon` so you can run the tool from anywhere
 
 ---
 
 ## 🏃 Usage
 
+After setup, run from any directory:
 ```bash
-python main.py
+cyfer-recon
 ```
 
 - **Targets:** Enter manually or load from a file
 - **Tasks:** Select from a list of 20+ recon automations
 - **Execution:** Choose concurrent or sequential
-- **Results:** Outputs saved under `output/{target}/`
+- **Results:** Outputs saved under `output/{target}/` as `toolname_result.ext` for each tool (e.g., `subfinder_result.txt`, `nmap_result.txt`)
 
 ### Example CLI Options
 
 ```bash
-python main.py --targets targets.txt
-python main.py --profile quick --headless
+cyfer-recon --targets targets.txt --setup-tools
+cyfer-recon --profile quick --headless
 ```
+
+- `--setup-tools`: Automatically download and set up any missing tools globally
 
 ---
 
@@ -104,9 +108,11 @@ MIT
 - **Q:** How do I add a new recon task?
   - **A:** Add it to `config/tasks.json` and ensure the tool is in `config/tools.json`.
 - **Q:** How do I install missing tools?
-  - **A:** The tool will suggest install commands for your OS.
+  - **A:** Use `--setup-tools` or let the tool prompt you to install them.
 - **Q:** Can I run this on Windows?
-  - **A:** Yes, but some tools may require WSL or adaptation.
+  - **A:** The tool is designed for Linux/Kali Linux. Some tools may require WSL or adaptation on Windows.
+- **Q:** How do I ignore output and logs in git?
+  - **A:** See the included `.gitignore` file for recommended ignores.
 
 ---
 

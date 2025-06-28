@@ -1,14 +1,40 @@
 import subprocess
 import os
+import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from rich.progress import Progress
+
+def get_tool_and_ext(cmd):
+    tool = cmd.split()[0]
+    # Try to guess extension from command (default to .txt)
+    match = re.search(r'-o(?:N|G)?\s+([^\s]+)', cmd)
+    if match:
+        out_file = match.group(1)
+        ext = os.path.splitext(out_file)[1] or '.txt'
+    elif '>' in cmd:
+        # e.g. tool ... > file.ext
+        parts = cmd.split('>')
+        if len(parts) > 1:
+            ext = os.path.splitext(parts[1].strip())[1] or '.txt'
+        else:
+            ext = '.txt'
+    else:
+        ext = '.txt'
+    return tool, ext
 
 def run_task_for_target(target, task, commands, output_dir, console):
     task_dir = os.path.join(output_dir, target)
     logs_dir = os.path.join(task_dir, 'logs')
     os.makedirs(logs_dir, exist_ok=True)
     for cmd in commands:
+        tool, ext = get_tool_and_ext(cmd)
+        result_file = os.path.join(task_dir, f"{tool}_result{ext}")
+        # Replace {target}, {output}, and output file in command
         cmd_fmt = cmd.replace('{target}', target).replace('{output}', task_dir)
+        # Replace any -o/-oN/-oG or > output with our result_file
+        cmd_fmt = re.sub(r'(-o(?:N|G)?\s+)[^\s]+', f"\\1{result_file}", cmd_fmt)
+        if '>' in cmd_fmt:
+            cmd_fmt = re.sub(r'>\s*[^\s]+', f'> {result_file}', cmd_fmt)
         log_file = os.path.join(logs_dir, f"{task.replace(' ', '_').lower()}.log")
         try:
             with open(log_file, 'a', encoding='utf-8') as lf:
