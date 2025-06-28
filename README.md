@@ -16,21 +16,20 @@ A modular, extensible Python CLI tool for cybersecurity and bug bounty automatio
 
 ---
 
-## 📦 Installation & Global Setup (Kali Linux)
+## 📦 Installation & Global Setup (Kali Linux, pipx, and Package Structure)
 
 1. **Clone the repo:**
    ```bash
-   git clone https://github.com/griffin-dox/Cyfer_Recon_Script
-   cd cyfer-recon-script
+   git clone https://github.com/griffin-dox/cyfer_recon
+   cd cyfer_recon
    ```
-2. **Run the setup script:**
+2. **Install with pipx (recommended):**
    ```bash
-   chmod +x setup.sh
-   sudo ./setup.sh
+   pipx install --force --python python3 .
    ```
    This will:
-   - Install Python dependencies
-   - Create a global symlink `/usr/local/bin/cyfer-recon` so you can run the tool from anywhere
+   - Install Python dependencies in an isolated environment
+   - Create a global command `cyfer-recon` you can run from anywhere
 
 ---
 

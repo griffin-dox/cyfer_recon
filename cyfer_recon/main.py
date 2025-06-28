@@ -39,7 +39,7 @@ def prompt_targets():
     return targets
 
 
-def main(
+def cli(
     targets: str = typer.Option(None, help="Comma-separated targets or path to file."),
     profile: str = typer.Option(None, help="Profile name for task selection."),
     headless: bool = typer.Option(False, help="Run in headless mode (no prompts)."),
@@ -110,6 +110,6 @@ def main(
         console=console
     )
 
-if __name__ == "__main__":
-    app.command()(main)
+def main():
+    app.command()(cli)
     app()
