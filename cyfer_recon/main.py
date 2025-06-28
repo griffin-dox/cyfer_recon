@@ -15,7 +15,8 @@ console = Console()
 CONFIG_DIR = os.path.join(os.path.dirname(__file__), 'config')
 TASKS_FILE = os.path.join(CONFIG_DIR, 'tasks.json')
 TOOLS_FILE = os.path.join(CONFIG_DIR, 'tools.json')
-OUTPUT_DIR = os.path.join(os.path.dirname(__file__), 'output')
+# OUTPUT_DIR will be set dynamically in cli()
+OUTPUT_DIR = None
 
 
 def load_json(path):
@@ -59,6 +60,10 @@ def cli(
     if not targets_list:
         console.print("[red]No targets provided. Exiting.")
         raise typer.Exit(1)
+
+    # Set OUTPUT_DIR to present working directory + first target name
+    global OUTPUT_DIR
+    OUTPUT_DIR = os.path.join(os.getcwd(), targets_list[0])
 
     # 2. Load tasks and tools
     tasks_config = load_json(TASKS_FILE)
