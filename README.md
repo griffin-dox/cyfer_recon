@@ -4,43 +4,37 @@ A modular, extensible Python CLI tool for cybersecurity and bug bounty automatio
 
 ---
 
-## ⚠️ Windows & WSL Support
+## ⚡ Quick Start
 
-> **Note:** This tool is designed and tested for Linux/Kali Linux. Many recon tools and commands (such as those using `apt`, `go install`, or Linux-specific binaries) will not work natively on Windows.
->
-> **For Windows users:**
-> - It is strongly recommended to use [Windows Subsystem for Linux (WSL)](https://docs.microsoft.com/en-us/windows/wsl/) and install Kali Linux or Ubuntu.
-> - Some features may not work or may require adaptation if run directly in Windows CMD or PowerShell.
-> - If you encounter issues, try running the tool inside a WSL terminal.
+### Prerequisites
+- **Python 3.7+** (Linux/Kali recommended)
+- **pipx** (recommended for global CLI install)
+- **git**
+- **Linux tools**: Many recon tools require `apt`, `go`, or other Linux utilities. See [Supported Recon Tasks](#️-supported-recon-tasks).
 
----
-
-## 🚀 Features
-- **Multi-Target Input:** Enter targets manually or load from file
-- **Task Selection:** Choose from 20+ recon tasks via interactive menu
-- **Tool Availability Check:** Verifies required tools, suggests install commands, and can auto-install for you
-- **Concurrent/Sequential Execution:** Choose your preferred mode
-- **Organized Output:** Results saved per target in structured folders
-- **Modern UI:** Uses `rich`, `questionary`, and `typer` for a great UX
-- **Global CLI:** Usable from anywhere on your system after setup
-- **Kali Linux Ready:** Designed and tested for Kali Linux
-
----
-
-## 📦 Installation & Global Setup (Kali Linux, pipx, and Package Structure)
-
+### For Linux/Kali/WSL Users
 1. **Clone the repo:**
    ```bash
    git clone https://github.com/griffin-dox/cyfer_recon.git
    cd cyfer_recon
    ```
-2. **Install with pipx (recommended):**
+2. **Install pipx (if not installed):**
+   ```bash
+   python3 -m pip install --user pipx
+   python3 -m pipx ensurepath
+   # Restart your shell if needed
+   ```
+3. **Install Cyfer Recon globally:**
    ```bash
    pipx install --force --python python3 .
    ```
    This will:
    - Install Python dependencies in an isolated environment
    - Create a global command `cyfer-recon` you can run from anywhere
+
+### For Windows Users
+> **Strongly recommended:** Use [Windows Subsystem for Linux (WSL)](https://docs.microsoft.com/en-us/windows/wsl/) and follow the Linux/Kali steps above inside your WSL terminal.
+> Some features and tools will not work in native Windows CMD or PowerShell.
 
 ---
 
@@ -54,15 +48,14 @@ cyfer-recon
 - **Targets:** Enter manually or load from a file
 - **Tasks:** Select from a list of 20+ recon automations
 - **Execution:** Choose concurrent or sequential
-- **Results:** Outputs saved under `output/{target}/` as `toolname_result.ext` for each tool (e.g., `subfinder_result.txt`, `nmap_result.txt`)
+- **Results:** Outputs saved under `{target}/` as `{tool}_result.ext` for each tool (e.g., `subfinder_result.txt`, `nmap_result.txt`)
 
 ### Example CLI Options
 
 ```bash
 cyfer-recon --targets targets.txt --setup-tools
-cyfer-recon --profile quick --headless
 ```
-
+- `--targets`: Path to a file or comma-separated list of targets
 - `--setup-tools`: Automatically download and set up any missing tools globally
 
 ---
@@ -104,8 +97,32 @@ pytest tests/
 ---
 
 ## 🤝 Contributing
-- PRs and issues welcome!
-- Add new tools/tasks by editing `config/tasks.json` and `config/tools.json`
+
+We welcome contributions! To get started:
+
+1. **Fork the repo** and create a new branch for your feature or fix.
+2. **Add new tools/tasks:**
+   - Edit `config/tasks.json` to add new tasks/commands.
+   - Edit `config/tools.json` to add tool install/check commands.
+3. **Follow code style:**
+   - Use clear, descriptive names and docstrings.
+   - Keep code modular and testable.
+4. **Test your changes:**
+   - Add or update tests in `tests/`.
+   - Run `pytest tests/` to ensure all tests pass.
+5. **Submit a Pull Request:**
+   - Describe your changes and reference any related issues.
+
+For questions or suggestions, open an issue or start a discussion!
+
+---
+
+## 🆘 Troubleshooting & Tips
+- **Missing tools:** Use `--setup-tools` or follow the install commands shown in the CLI.
+- **Permission errors:** Some tools require `sudo` or special permissions. Run the CLI as a user with appropriate rights.
+- **Windows issues:** Use WSL for best compatibility. Native Windows is not fully supported.
+- **Output not found:** Check the `{target}/` directory for results and logs.
+- **Need help?** Open an issue on GitHub or check the FAQ below.
 
 ---
 
