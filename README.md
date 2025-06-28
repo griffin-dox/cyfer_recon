@@ -20,7 +20,7 @@ A modular, extensible Python CLI tool for cybersecurity and bug bounty automatio
 
 1. **Clone the repo:**
    ```bash
-   git clone https://github.com/griffin-dox/cyfer_recon
+   git clone https://github.com/griffin-dox/cyfer_recon.git
    cd cyfer_recon
    ```
 2. **Install with pipx (recommended):**
