@@ -1,7 +1,12 @@
 import shutil
 import subprocess
+from typing import Dict, List, Any, Optional
 
-def check_tools(selected_tasks, tasks_config, tools_config):
+def check_tools(selected_tasks: List[str], tasks_config: Dict[str, Any], tools_config: Dict[str, Any]) -> Dict[str, str]:
+    """
+    Check for missing tools required by the selected tasks.
+    Returns a dict of missing tool names to their install commands.
+    """
     required_tools = set()
     for task in selected_tasks:
         commands = tasks_config.get(task, [])
@@ -15,9 +20,10 @@ def check_tools(selected_tasks, tasks_config, tools_config):
             missing[tool] = tools_config[tool]['install']
     return missing
 
-def install_tools(missing_tools, console=None):
+def install_tools(missing_tools: Dict[str, str], console: Optional[Any] = None) -> None:
     """
     Attempt to install missing tools globally using their install commands.
+    Logs output to the provided console if available.
     """
     for tool, install_cmd in missing_tools.items():
         if console:
@@ -26,7 +32,7 @@ def install_tools(missing_tools, console=None):
             subprocess.run(install_cmd, shell=True, check=True)
             if console:
                 console.print(f"[green]Successfully installed {tool}")
-        except Exception as e:
+        except subprocess.CalledProcessError as e:
             if console:
                 console.print(f"[red]Failed to install {tool}: {e}")
             else:

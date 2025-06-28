@@ -1,10 +1,12 @@
 import subprocess
 import os
 import re
+from typing import List, Dict, Any, Tuple
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from rich.progress import Progress
 
-def get_tool_and_ext(cmd):
+def get_tool_and_ext(cmd: str) -> Tuple[str, str]:
+    """Extract tool name and output file extension from a command string."""
     tool = cmd.split()[0]
     # Try to guess extension from command (default to .txt)
     match = re.search(r'-o(?:N|G)?\s+([^\s]+)', cmd)
@@ -22,8 +24,11 @@ def get_tool_and_ext(cmd):
         ext = '.txt'
     return tool, ext
 
-def run_task_for_target(target, task, commands, output_dir, console):
-    task_dir = os.path.join(output_dir, target)
+def run_task_for_target(target: str, task: str, commands: List[str], output_dir: str, console: Any) -> None:
+    """
+    Run all commands for a given target and task, saving output and logs.
+    """
+    task_dir = output_dir
     logs_dir = os.path.join(task_dir, 'logs')
     os.makedirs(logs_dir, exist_ok=True)
     for cmd in commands:
@@ -43,7 +48,10 @@ def run_task_for_target(target, task, commands, output_dir, console):
         except Exception as e:
             console.print(f"[red]Error running {cmd_fmt}: {e}")
 
-def run_tasks(targets, selected_tasks, tasks_config, output_dir, concurrent, console):
+def run_tasks(targets: List[str], selected_tasks: List[str], tasks_config: Dict[str, Any], output_dir: str, concurrent: bool, console: Any) -> None:
+    """
+    Run all selected tasks for all targets, concurrently or sequentially.
+    """
     jobs = []
     for target in targets:
         for task in selected_tasks:
