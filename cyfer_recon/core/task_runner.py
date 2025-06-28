@@ -71,33 +71,41 @@ def run_tasks(targets: List[str], selected_tasks: List[str], tasks_config: Dict[
         for task in selected_tasks:
             commands = tasks_config.get(task, [])
             jobs.append((target, task, commands))
-    progress_columns = [
+    tool_columns = [
         TextColumn("{task.fields[tool_name]}", justify="right"),
         BarColumn(),
         TaskProgressColumn(),
         TextColumn("{task.percentage:>3.0f}/100")
     ]
+    all_tasks_columns = [
+        TextColumn("{task.description}", justify="right"),
+        BarColumn(),
+        TaskProgressColumn(),
+        TextColumn("{task.percentage:>3.0f}/100")
+    ]
     if concurrent:
-        with Progress(*progress_columns, TimeElapsedColumn()) as progress:
-            parent_task_id = progress.add_task("All Tasks", total=len(jobs))
-            with ThreadPoolExecutor() as executor:
-                futures = [executor.submit(run_task_for_target, t, task, cmds, output_dir, console, progress, parent_task_id) for t, task, cmds in jobs]
-                for _ in as_completed(futures):
-                    progress.advance(parent_task_id, 1)
+        with Progress(*all_tasks_columns, TimeElapsedColumn()) as all_progress:
+            parent_task_id = all_progress.add_task("All Tasks", total=len(jobs))
+            with Progress(*tool_columns, TimeElapsedColumn()) as tool_progress:
+                with ThreadPoolExecutor() as executor:
+                    futures = [executor.submit(run_task_for_target, t, task, cmds, output_dir, console, tool_progress, parent_task_id) for t, task, cmds in jobs]
+                    for _ in as_completed(futures):
+                        all_progress.advance(parent_task_id, 1)
     else:
-        with Progress(*progress_columns, TimeElapsedColumn()) as progress:
-            parent_task_id = progress.add_task("All Tasks", total=len(jobs))
-            for t, task, cmds in jobs:
-                for cmd in cmds:
-                    tool, _ = get_tool_and_ext(cmd)
-                    bar_task_id = progress.add_task(f"{tool}", total=100, tool_name=tool)
-                    progress.update(bar_task_id, completed=0)
-                    try:
-                        process = subprocess.run(cmd.replace('{target}', t).replace('{output}', output_dir), shell=True, capture_output=True, text=True)
-                        progress.update(bar_task_id, completed=100)
-                    except Exception as e:
-                        console.print(f"[red]Error running {cmd}: {e}")
-                    finally:
-                        progress.remove_task(bar_task_id)
-                progress.advance(parent_task_id, 1)
-                console.print(f"[green]Finished {task} for {t}")
+        with Progress(*all_tasks_columns, TimeElapsedColumn()) as all_progress:
+            parent_task_id = all_progress.add_task("All Tasks", total=len(jobs))
+            with Progress(*tool_columns, TimeElapsedColumn()) as tool_progress:
+                for t, task, cmds in jobs:
+                    for cmd in cmds:
+                        tool, _ = get_tool_and_ext(cmd)
+                        bar_task_id = tool_progress.add_task(f"{tool}", total=100, tool_name=tool)
+                        tool_progress.update(bar_task_id, completed=0)
+                        try:
+                            process = subprocess.run(cmd.replace('{target}', t).replace('{output}', output_dir), shell=True, capture_output=True, text=True)
+                            tool_progress.update(bar_task_id, completed=100)
+                        except Exception as e:
+                            console.print(f"[red]Error running {cmd}: {e}")
+                        finally:
+                            tool_progress.remove_task(bar_task_id)
+                    all_progress.advance(parent_task_id, 1)
+                    console.print(f"[green]Finished {task} for {t}")
