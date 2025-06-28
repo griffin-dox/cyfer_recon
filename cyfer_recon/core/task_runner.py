@@ -3,7 +3,9 @@ import os
 import re
 from typing import List, Dict, Any, Tuple
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from rich.progress import Progress, BarColumn, TextColumn, TaskProgressColumn, TimeElapsedColumn
+from rich.progress import Progress, BarColumn, TextColumn, TimeElapsedColumn, SpinnerColumn, TaskID
+from rich.console import Console
+from rich.style import Style
 
 def get_tool_and_ext(cmd: str) -> Tuple[str, str]:
     """Extract tool name and output file extension from a command string."""
@@ -43,24 +45,29 @@ def run_task_for_target(target: str, task: str, commands: List[str], output_dir:
         log_file = os.path.join(logs_dir, f"{task.replace(' ', '_').lower()}.log")
         bar_task_id = None
         if progress is not None:
-            bar_task_id = progress.add_task(f"{tool}", total=100)
+            bar_task_id = progress.add_task(f"{tool}", status="Running")
         try:
             with open(log_file, 'a', encoding='utf-8') as lf:
-                # Simulate progress bar for the tool (since subprocess.run is blocking)
                 if progress is not None and bar_task_id is not None:
-                    progress.update(bar_task_id, completed=0)
+                    progress.update(bar_task_id, status="Running")
                 process = subprocess.run(cmd_fmt, shell=True, capture_output=True, text=True)
-                if progress is not None and bar_task_id is not None:
-                    progress.update(bar_task_id, completed=100)
+                if process.returncode == 0:
+                    if progress is not None and bar_task_id is not None:
+                        progress.update(bar_task_id, status="Finished")
+                else:
+                    if progress is not None and bar_task_id is not None:
+                        progress.update(bar_task_id, status="[red]Error")
                 lf.write(f"$ {cmd_fmt}\n{process.stdout}\n{process.stderr}\n")
         except Exception as e:
+            if progress is not None and bar_task_id is not None:
+                progress.update(bar_task_id, status="[red]Error")
             console.print(f"[red]Error running {cmd_fmt}: {e}")
         finally:
             if progress is not None and bar_task_id is not None:
                 progress.remove_task(bar_task_id)
-        # Optionally update parent progress
         if progress is not None and parent_task_id is not None:
             progress.advance(parent_task_id, 1)
+
 
 def run_tasks(targets: List[str], selected_tasks: List[str], tasks_config: Dict[str, Any], output_dir: str, concurrent: bool, console: Any) -> None:
     """
@@ -72,22 +79,27 @@ def run_tasks(targets: List[str], selected_tasks: List[str], tasks_config: Dict[
             commands = tasks_config.get(task, [])
             jobs.append((target, task, commands))
     progress_columns = [
+        SpinnerColumn(),
         TextColumn("{task.description}", justify="right"),
         BarColumn(),
-        TaskProgressColumn(),
-        TextColumn("{task.percentage:>3.0f}/100")
+        TextColumn("[bold]{task.fields[status]}", justify="left"),
+        TimeElapsedColumn(),
     ]
-    with Progress(*progress_columns, TimeElapsedColumn()) as progress:
-        parent_task_id = progress.add_task("All Tasks", total=len(jobs))
+    with Progress(*progress_columns) as progress:
+        parent_task_id = progress.add_task("All Tasks", total=len(jobs), status="Running")
         def run_job(t, task, cmds):
             for cmd in cmds:
                 tool, _ = get_tool_and_ext(cmd)
-                bar_task_id = progress.add_task(f"{tool}", total=100)
-                progress.update(bar_task_id, completed=0)
+                bar_task_id = progress.add_task(f"{tool}", status="Running")
+                progress.update(bar_task_id, status="Running")
                 try:
                     process = subprocess.run(cmd.replace('{target}', t).replace('{output}', output_dir), shell=True, capture_output=True, text=True)
-                    progress.update(bar_task_id, completed=100)
+                    if process.returncode == 0:
+                        progress.update(bar_task_id, status="Finished")
+                    else:
+                        progress.update(bar_task_id, status="[red]Error")
                 except Exception as e:
+                    progress.update(bar_task_id, status="[red]Error")
                     console.print(f"[red]Error running {cmd}: {e}")
                 finally:
                     progress.remove_task(bar_task_id)

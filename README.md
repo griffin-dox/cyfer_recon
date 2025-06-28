@@ -4,6 +4,17 @@ A modular, extensible Python CLI tool for cybersecurity and bug bounty automatio
 
 ---
 
+## ⚠️ Windows & WSL Support
+
+> **Note:** This tool is designed and tested for Linux/Kali Linux. Many recon tools and commands (such as those using `apt`, `go install`, or Linux-specific binaries) will not work natively on Windows.
+>
+> **For Windows users:**
+> - It is strongly recommended to use [Windows Subsystem for Linux (WSL)](https://docs.microsoft.com/en-us/windows/wsl/) and install Kali Linux or Ubuntu.
+> - Some features may not work or may require adaptation if run directly in Windows CMD or PowerShell.
+> - If you encounter issues, try running the tool inside a WSL terminal.
+
+---
+
 ## 🚀 Features
 - **Multi-Target Input:** Enter targets manually or load from file
 - **Task Selection:** Choose from 20+ recon tasks via interactive menu
@@ -109,7 +120,7 @@ MIT
 - **Q:** How do I install missing tools?
   - **A:** Use `--setup-tools` or let the tool prompt you to install them.
 - **Q:** Can I run this on Windows?
-  - **A:** The tool is designed for Linux/Kali Linux. Some tools may require WSL or adaptation on Windows.
+  - **A:** The tool is designed for Linux/Kali Linux. For best results on Windows, use WSL (Windows Subsystem for Linux) with a supported Linux distribution. Some tools and commands will not work in native Windows environments.
 - **Q:** How do I ignore output and logs in git?
   - **A:** See the included `.gitignore` file for recommended ignores.
 

@@ -8,6 +8,7 @@ from cyfer_recon.core.tool_checker import check_tools, install_tools
 from cyfer_recon.core.task_runner import run_tasks
 import json
 import os
+import sys
 
 app = typer.Typer()
 console = Console()
@@ -15,8 +16,6 @@ console = Console()
 CONFIG_DIR = os.path.join(os.path.dirname(__file__), 'config')
 TASKS_FILE = os.path.join(CONFIG_DIR, 'tasks.json')
 TOOLS_FILE = os.path.join(CONFIG_DIR, 'tools.json')
-# OUTPUT_DIR will be set dynamically in cli()
-OUTPUT_DIR = None
 
 
 def load_json(path):
@@ -42,11 +41,13 @@ def prompt_targets():
 
 def cli(
     targets: str = typer.Option(None, help="Comma-separated targets or path to file."),
-    profile: str = typer.Option(None, help="Profile name for task selection."),
-    headless: bool = typer.Option(False, help="Run in headless mode (no prompts)."),
     setup_tools: bool = typer.Option(False, help="Automatically download and setup missing tools globally.")
 ):
     console.print(Panel("[bold cyan]Cybersecurity Recon Automation CLI Tool[/bold cyan]", expand=False))
+
+    # Platform check
+    if sys.platform.startswith("win"):
+        console.print("[yellow]Warning: This tool is designed for Linux/Kali. Some features may not work on Windows. Consider using WSL.")
 
     # 1. Collect targets
     if targets:
@@ -60,10 +61,6 @@ def cli(
     if not targets_list:
         console.print("[red]No targets provided. Exiting.")
         raise typer.Exit(1)
-
-    # Set OUTPUT_DIR to present working directory + first target name
-    global OUTPUT_DIR
-    OUTPUT_DIR = os.path.join(os.getcwd(), targets_list[0])
 
     # 2. Load tasks and tools
     tasks_config = load_json(TASKS_FILE)
@@ -101,19 +98,18 @@ def cli(
     ).ask()
     concurrent = exec_mode == "Concurrent"
 
-    # 6. Prepare output dirs
+    # 6. Prepare output dirs and run tasks per target
     for target in targets_list:
-        prepare_output_dirs(OUTPUT_DIR, target, selected_tasks)
-
-    # 7. Run tasks
-    run_tasks(
-        targets=targets_list,
-        selected_tasks=selected_tasks,
-        tasks_config=tasks_config,
-        output_dir=OUTPUT_DIR,
-        concurrent=concurrent,
-        console=console
-    )
+        output_dir = os.path.join(os.getcwd(), target)
+        prepare_output_dirs(output_dir, target, selected_tasks)
+        run_tasks(
+            targets=[target],
+            selected_tasks=selected_tasks,
+            tasks_config=tasks_config,
+            output_dir=output_dir,
+            concurrent=concurrent,
+            console=console
+        )
 
 def main():
     app.command()(cli)

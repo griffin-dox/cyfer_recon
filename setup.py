@@ -1,4 +1,10 @@
 from setuptools import setup, find_packages
+import os
+
+# Use absolute path for README.md
+here = os.path.abspath(os.path.dirname(__file__))
+with open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
+    long_description = f.read()
 
 setup(
     name='cyfer-recon',
@@ -24,6 +30,6 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
     ],
-    long_description=open('README.md', encoding='utf-8').read(),
+    long_description=long_description,
     long_description_content_type='text/markdown',
 )
