@@ -1,5 +1,0 @@
-$ sqlmap -u "http://bytebloggerbase.com/page?id=1" --batch --dbs
-
-'sqlmap' is not recognized as an internal or external command,
-operable program or batch file.
-

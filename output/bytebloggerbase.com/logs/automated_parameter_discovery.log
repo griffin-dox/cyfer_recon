@@ -1,9 +1,0 @@
-$ python3 pamspider.py -u https://bytebloggerbase.com
-
-python3: can't open file 'C:\\Users\\spcho\\Documents\\Projects\\Cyfer_Recon_Script\\pamspider.py': [Errno 2] No such file or directory
-
-$ arjun -u https://bytebloggerbase.com/api -o C:\Users\spcho\Documents\Projects\Cyfer_Recon_Script\output\bytebloggerbase.com/arjun_output.txt
-
-'arjun' is not recognized as an internal or external command,
-operable program or batch file.
-
