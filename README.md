@@ -60,6 +60,22 @@ cyfer-recon --targets targets.txt --setup-tools
 
 ---
 
+## 📦 Payloads and Wordlists
+
+- **Payloads:**
+  - Place your custom payload files in the `payloads/` folder in the project root.
+  - You can also select a payload by entering a local file path or a URL (the tool will download and use it).
+  - There is no system-wide payload directory on Linux/Kali; this folder is project-specific.
+
+- **Wordlists:**
+  - On Linux/Kali, the tool will first look in `/usr/share/wordlists/` (the standard system directory).
+  - You can also use a local `wordlists/` folder in the project root.
+  - Additionally, you can select a wordlist by entering a local file path or a URL.
+
+When running tasks that require payloads or wordlists, the CLI will prompt you to select from these options.
+
+---
+
 ## 🛠️ Supported Recon Tasks
 
 - Subdomain Enumeration (subfinder, amass, assetfinder)

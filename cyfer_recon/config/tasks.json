@@ -13,16 +13,16 @@
     "cat {output}/subdomains/subfinder.txt | aquatone -out {output}/screenshots/aquatone_output"
   ],
   "Automated Directory Brute Forcing": [
-    "ffuf -w wordlist.txt -u http://{target}/FUZZ",
-    "gobuster dir -u http://{target} -w wordlist.txt"
+    "ffuf -w {wordlist} -u http://{target}/FUZZ",
+    "gobuster dir -u http://{target} -w {wordlist}"
   ],
   "Automated JavaScript Analysis": [
     "linkfinder -i {output}/urls.txt -o {output}/js/output.txt",
     "gf apikey < {output}/js/javascript_files.txt > {output}/js/gf_apikey.txt"
   ],
   "Automated Parameter Discovery": [
-    "python3 pamspider.py -u https://{target}",
-    "arjun -u https://{target}/api -o {output}/arjun_output.txt"
+    "python3 pamspider.py -u https://{target} -w {wordlist}",
+    "arjun -u https://{target}/api -w {wordlist} -o {output}/arjun_output.txt"
   ],
   "Automated XSS Detection": [
     "dlox -u https://{target}",
@@ -47,7 +47,7 @@
     "httpx -u http://{target} -sc -title -server -o {output}/headers.txt"
   ],
   "Automated API Recon": [
-    "kiterunner -u https://{target}/api -w api_wordlist.txt"
+    "kiterunner -u https://{target}/api -w {wordlist}"
   ],
   "Automated Content Discovery": [
     "jhaddix -d {target} -o {output}/urls.txt",

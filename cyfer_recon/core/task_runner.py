@@ -3,9 +3,7 @@ import os
 import re
 from typing import List, Dict, Any, Tuple
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from rich.progress import Progress, BarColumn, TextColumn, TimeElapsedColumn, SpinnerColumn, TaskID
-from rich.console import Console
-from rich.style import Style
+from rich.progress import Progress, BarColumn, TextColumn, TimeElapsedColumn, SpinnerColumn
 
 def get_tool_and_ext(cmd: str) -> Tuple[str, str]:
     """Extract tool name and output file extension from a command string."""
@@ -35,9 +33,11 @@ def run_task_for_target(target: str, task: str, commands: List[str], output_dir:
     logs_dir = os.path.join(task_dir, 'logs')
     os.makedirs(logs_dir, exist_ok=True)
     total_cmds = len(commands)
+    failed_cmds = []
     for idx, cmd in enumerate(commands):
         tool, ext = get_tool_and_ext(cmd)
-        result_file = os.path.join(task_dir, f"{tool}_result{ext}")
+        # Use task and index in output filename to avoid overwrite
+        result_file = os.path.join(task_dir, f"{tool}_{task.replace(' ', '_').lower()}_{idx+1}{ext}")
         cmd_fmt = cmd.replace('{target}', target).replace('{output}', task_dir)
         cmd_fmt = re.sub(r'(-o(?:N|G)?\s+)[^\s]+', f"\\1{result_file}", cmd_fmt)
         if '>' in cmd_fmt:
@@ -57,27 +57,57 @@ def run_task_for_target(target: str, task: str, commands: List[str], output_dir:
                 else:
                     if progress is not None and bar_task_id is not None:
                         progress.update(bar_task_id, status="[red]Error")
+                    failed_cmds.append(cmd_fmt)
                 lf.write(f"$ {cmd_fmt}\n{process.stdout}\n{process.stderr}\n")
         except Exception as e:
             if progress is not None and bar_task_id is not None:
                 progress.update(bar_task_id, status="[red]Error")
             console.print(f"[red]Error running {cmd_fmt}: {e}")
+            failed_cmds.append(cmd_fmt)
         finally:
             if progress is not None and bar_task_id is not None:
                 progress.remove_task(bar_task_id)
         if progress is not None and parent_task_id is not None:
             progress.advance(parent_task_id, 1)
+    if failed_cmds:
+        console.print(f"[red]Failed commands for {target} - {task}:")
+        for fc in failed_cmds:
+            console.print(f"[red]  {fc}")
 
-
-def run_tasks(targets: List[str], selected_tasks: List[str], tasks_config: Dict[str, Any], output_dir: str, concurrent: bool, console: Any) -> None:
+def run_tasks(targets: List[str], selected_tasks: List[str], tasks_config: Dict[str, Any], output_dir: str, concurrent: bool, console: Any, wordlists: list = None, payloads: list = None) -> None:
     """
     Run all selected tasks for all targets, concurrently or sequentially, with progress bars.
+    For commands with {wordlist} or {payload}, run once per wordlist/payload.
     """
+    if wordlists is None:
+        wordlists = []
+    if payloads is None:
+        payloads = []
     jobs = []
     for target in targets:
         for task in selected_tasks:
             commands = tasks_config.get(task, [])
-            jobs.append((target, task, commands))
+            for cmd in commands:
+                if "{wordlist}" in cmd and wordlists:
+                    for wordlist in wordlists:
+                        wl_name = os.path.splitext(os.path.basename(wordlist))[0]
+                        cmd_wl = cmd.replace("{wordlist}", wordlist)
+                        # Add output file suffix for wordlist
+                        cmd_wl = re.sub(r'(ffuf|gobuster|kiterunner)([^>]*)(-o\s*|>\s*)([^\s]+)',
+                                        lambda m: f"{m.group(1)}{m.group(2)}{m.group(3)}{output_dir}/{m.group(1)}_{wl_name}.txt",
+                                        cmd_wl)
+                        jobs.append((target, task, [cmd_wl]))
+                elif "{payload}" in cmd and payloads:
+                    for payload in payloads:
+                        pl_name = os.path.splitext(os.path.basename(payload))[0]
+                        cmd_pl = cmd.replace("{payload}", payload)
+                        # Add output file suffix for payload if needed
+                        cmd_pl = re.sub(r'(ffuf|gobuster|kiterunner)([^>]*)(-o\s*|>\s*)([^\s]+)',
+                                        lambda m: f"{m.group(1)}{m.group(2)}{m.group(3)}{output_dir}/{m.group(1)}_{pl_name}.txt",
+                                        cmd_pl)
+                        jobs.append((target, task, [cmd_pl]))
+                else:
+                    jobs.append((target, task, [cmd]))
     progress_columns = [
         SpinnerColumn(),
         TextColumn("{task.description}", justify="right"),
@@ -87,7 +117,9 @@ def run_tasks(targets: List[str], selected_tasks: List[str], tasks_config: Dict[
     ]
     with Progress(*progress_columns) as progress:
         parent_task_id = progress.add_task("All Tasks", total=len(jobs), status="Running")
+        failed_jobs = []
         def run_job(t, task, cmds):
+            job_failed = False
             for cmd in cmds:
                 tool, _ = get_tool_and_ext(cmd)
                 bar_task_id = progress.add_task(f"{tool}", status="Running")
@@ -98,12 +130,16 @@ def run_tasks(targets: List[str], selected_tasks: List[str], tasks_config: Dict[
                         progress.update(bar_task_id, status="Finished")
                     else:
                         progress.update(bar_task_id, status="[red]Error")
+                        job_failed = True
                 except Exception as e:
                     progress.update(bar_task_id, status="[red]Error")
                     console.print(f"[red]Error running {cmd}: {e}")
+                    job_failed = True
                 finally:
                     progress.remove_task(bar_task_id)
             progress.advance(parent_task_id, 1)
+            if job_failed:
+                failed_jobs.append((t, task))
             console.print(f"[green]Finished {task} for {t}")
         if concurrent:
             with ThreadPoolExecutor() as executor:
@@ -113,3 +149,7 @@ def run_tasks(targets: List[str], selected_tasks: List[str], tasks_config: Dict[
         else:
             for t, task, cmds in jobs:
                 run_job(t, task, cmds)
+    if failed_jobs:
+        console.print("[red]Summary of failed jobs:")
+        for t, task in failed_jobs:
+            console.print(f"[red]  {task} for {t}")

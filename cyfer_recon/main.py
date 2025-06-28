@@ -9,6 +9,7 @@ from cyfer_recon.core.task_runner import run_tasks
 import json
 import os
 import sys
+import glob
 
 app = typer.Typer()
 console = Console()
@@ -47,17 +48,31 @@ def cli(
 
     # Platform check
     if sys.platform.startswith("win"):
-        console.print("[yellow]Warning: This tool is designed for Linux/Kali. Some features may not work on Windows. Consider using WSL.")
+        console.print("[yellow]Windows detected. Some tools may not work natively. For best results, use WSL or ensure all dependencies are available for Windows.")
+    elif not (sys.platform.startswith("linux") or sys.platform.startswith("darwin")):
+        console.print("[red]Unsupported platform. This tool is designed for Linux, macOS, or Windows (with WSL recommended). Exiting.")
+        raise typer.Exit(1)
 
     # 1. Collect targets
     if targets:
         if os.path.isfile(targets):
-            targets_list = load_targets(targets)
+            try:
+                targets_list = load_targets(targets)
+            except Exception as e:
+                console.print(f"[red]Failed to load targets from file: {e}")
+                raise typer.Exit(1)
         else:
             targets_list = [t.strip() for t in targets.replace(',', ' ').split() if t.strip()]
         save_targets(targets_list)
     else:
-        targets_list = prompt_targets()
+        try:
+            targets_list = prompt_targets()
+        except FileNotFoundError as e:
+            console.print(f"[red]File not found: {e}")
+            raise typer.Exit(1)
+        except Exception as e:
+            console.print(f"[red]Error: {e}")
+            raise typer.Exit(1)
     if not targets_list:
         console.print("[red]No targets provided. Exiting.")
         raise typer.Exit(1)
@@ -74,6 +89,82 @@ def cli(
     if not selected_tasks:
         console.print("[red]No tasks selected. Exiting.")
         raise typer.Exit(1)
+
+    # 3.5. Wordlist selection (for tasks that use {wordlist})
+    wordlist_tasks = [task for task in selected_tasks if any("{wordlist}" in cmd for cmd in tasks_config[task])]
+    wordlists = []
+    if wordlist_tasks:
+        wordlists = []
+        wordlist_menu_choices = []
+        # 1. List from default dir
+        default_wordlist_dir = "/usr/share/wordlists/"
+        if os.path.isdir(default_wordlist_dir):
+            import glob
+            found_wordlists = glob.glob(os.path.join(default_wordlist_dir, "**", "*.txt"), recursive=True)
+            wordlist_menu_choices += [f"[Folder] {os.path.relpath(w, default_wordlist_dir)}" for w in found_wordlists]
+        # 2. List from local wordlists/ folder
+        from cyfer_recon.core.utils import list_files_in_folder, download_file, validate_local_file
+        local_wordlist_dir = os.path.join(os.getcwd(), "wordlists")
+        local_wordlists = list_files_in_folder(local_wordlist_dir, extensions=[".txt", ".lst", ".wordlist"])
+        wordlist_menu_choices += [f"[Local] {os.path.basename(w)}" for w in local_wordlists]
+        # 3. Add custom path/URL option
+        wordlist_menu_choices += ["[Custom] Enter local file path", "[Custom] Enter URL"]
+        selected = questionary.checkbox(
+            "Select wordlists to use:",
+            choices=wordlist_menu_choices
+        ).ask()
+        for sel in selected:
+            if sel.startswith("[Folder]"):
+                wordlists.append(os.path.join(default_wordlist_dir, sel.replace("[Folder] ", "")))
+            elif sel.startswith("[Local]"):
+                wordlists.append(os.path.join(local_wordlist_dir, sel.replace("[Local] ", "")))
+            elif sel == "[Custom] Enter local file path":
+                path = questionary.path("Enter path to a wordlist:").ask()
+                if validate_local_file(path):
+                    wordlists.append(path)
+                else:
+                    console.print(f"[red]File not found or not readable: {path}")
+            elif sel == "[Custom] Enter URL":
+                url = questionary.text("Enter URL to a wordlist:").ask()
+                try:
+                    tmp_path = download_file(url)
+                    wordlists.append(tmp_path)
+                except Exception as e:
+                    console.print(f"[red]Failed to download: {e}")
+    else:
+        wordlists = []
+
+    # 3.6. Payload selection (for tasks that use {payload})
+    payload_tasks = [task for task in selected_tasks if any("{payload}" in cmd for cmd in tasks_config[task])]
+    payloads = []
+    if payload_tasks:
+        payload_menu_choices = []
+        payload_folder = os.path.join(os.getcwd(), "payloads")
+        payload_files = list_files_in_folder(payload_folder)
+        payload_menu_choices += [f"[Payloads] {os.path.basename(p)}" for p in payload_files]
+        payload_menu_choices += ["[Custom] Enter local file path", "[Custom] Enter URL"]
+        selected = questionary.checkbox(
+            "Select payloads to use:",
+            choices=payload_menu_choices
+        ).ask()
+        for sel in selected:
+            if sel.startswith("[Payloads]"):
+                payloads.append(os.path.join(payload_folder, sel.replace("[Payloads] ", "")))
+            elif sel == "[Custom] Enter local file path":
+                path = questionary.path("Enter path to a payload:").ask()
+                if validate_local_file(path):
+                    payloads.append(path)
+                else:
+                    console.print(f"[red]File not found or not readable: {path}")
+            elif sel == "[Custom] Enter URL":
+                url = questionary.text("Enter URL to a payload:").ask()
+                try:
+                    tmp_path = download_file(url)
+                    payloads.append(tmp_path)
+                except Exception as e:
+                    console.print(f"[red]Failed to download: {e}")
+    else:
+        payloads = []
 
     # 4. Tool check
     missing_tools = check_tools(selected_tasks, tasks_config, tools_config)
@@ -98,17 +189,34 @@ def cli(
     ).ask()
     concurrent = exec_mode == "Concurrent"
 
+    # 5.5. Collect all output folders from tasks_config for selected_tasks
+    import re
+    output_folders = set()
+    for task in selected_tasks:
+        for cmd in tasks_config[task]:
+            matches = re.findall(r'\{output\}/([\w\-]+)/', cmd)
+            output_folders.update(matches)
+    # Add known folders from commands (e.g., js, gitdump, etc.)
+    for task in selected_tasks:
+        for cmd in tasks_config[task]:
+            if '{output}/js/' in cmd:
+                output_folders.add('js')
+            if '{output}/gitdump/' in cmd:
+                output_folders.add('gitdump')
+
     # 6. Prepare output dirs and run tasks per target
     for target in targets_list:
         output_dir = os.path.join(os.getcwd(), target)
-        prepare_output_dirs(output_dir, target, selected_tasks)
+        prepare_output_dirs(output_dir, target, selected_tasks, extra_folders=list(output_folders))
         run_tasks(
             targets=[target],
             selected_tasks=selected_tasks,
             tasks_config=tasks_config,
             output_dir=output_dir,
             concurrent=concurrent,
-            console=console
+            console=console,
+            wordlists=wordlists,
+            payloads=payloads
         )
 
 def main():
