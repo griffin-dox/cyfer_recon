@@ -1,0 +1,10 @@
+$ jhaddix -d bytebloggerbase.com -o C:\Users\spcho\Documents\Projects\Cyfer_Recon_Script\output\bytebloggerbase.com/urls.txt
+
+'jhaddix' is not recognized as an internal or external command,
+operable program or batch file.
+
+$ waybackurls bytebloggerbase.com > C:\Users\spcho\Documents\Projects\Cyfer_Recon_Script\output\bytebloggerbase.com/wayback_urls.txt
+
+'waybackurls' is not recognized as an internal or external command,
+operable program or batch file.
+

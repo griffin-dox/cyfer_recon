@@ -1,0 +1,9 @@
+$ linkfinder -i C:\Users\spcho\Documents\Projects\Cyfer_Recon_Script\output\bytebloggerbase.com/urls.txt -o C:\Users\spcho\Documents\Projects\Cyfer_Recon_Script\output\bytebloggerbase.com/js/output.txt
+
+'linkfinder' is not recognized as an internal or external command,
+operable program or batch file.
+
+$ gf apikey < C:\Users\spcho\Documents\Projects\Cyfer_Recon_Script\output\bytebloggerbase.com/js/javascript_files.txt > C:\Users\spcho\Documents\Projects\Cyfer_Recon_Script\output\bytebloggerbase.com/js/gf_apikey.txt
+
+The system cannot find the path specified.
+

@@ -1,0 +1,10 @@
+$ ffuf -w wordlist.txt -u http://bytebloggerbase.com/FUZZ
+
+'ffuf' is not recognized as an internal or external command,
+operable program or batch file.
+
+$ gobuster dir -u http://bytebloggerbase.com -w wordlist.txt
+
+'gobuster' is not recognized as an internal or external command,
+operable program or batch file.
+

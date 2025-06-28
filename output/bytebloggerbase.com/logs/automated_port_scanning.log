@@ -1,0 +1,10 @@
+$ masscan -p1-65535 --rate=1000 -oG C:\Users\spcho\Documents\Projects\Cyfer_Recon_Script\output\bytebloggerbase.com/ports/masscan.txt bytebloggerbase.com
+
+'masscan' is not recognized as an internal or external command,
+operable program or batch file.
+
+$ nmap -p- -sV -T4 -oN C:\Users\spcho\Documents\Projects\Cyfer_Recon_Script\output\bytebloggerbase.com/ports/nmap_results.txt bytebloggerbase.com
+
+'nmap' is not recognized as an internal or external command,
+operable program or batch file.
+

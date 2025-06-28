@@ -1,0 +1,130 @@
+{
+  "subfinder": {
+    "check": "subfinder",
+    "install": "go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest"
+  },
+  "amass": {
+    "check": "amass",
+    "install": "go install -v github.com/owasp-amass/amass/v3/...@latest"
+  },
+  "assetfinder": {
+    "check": "assetfinder",
+    "install": "go install github.com/tomnomnom/assetfinder@latest"
+  },
+  "masscan": {
+    "check": "masscan",
+    "install": "sudo apt install masscan"
+  },
+  "nmap": {
+    "check": "nmap",
+    "install": "sudo apt install nmap"
+  },
+  "eyewitness": {
+    "check": "eyewitness",
+    "install": "git clone https://github.com/FortyNorthSecurity/EyeWitness.git && cd EyeWitness && sudo ./setup.sh"
+  },
+  "aquatone": {
+    "check": "aquatone",
+    "install": "go install github.com/michenriksen/aquatone@latest"
+  },
+  "ffuf": {
+    "check": "ffuf",
+    "install": "go install github.com/ffuf/ffuf@latest"
+  },
+  "gobuster": {
+    "check": "gobuster",
+    "install": "go install github.com/OJ/gobuster/v3@latest"
+  },
+  "linkfinder": {
+    "check": "linkfinder",
+    "install": "pip install linkfinder"
+  },
+  "gf": {
+    "check": "gf",
+    "install": "go install github.com/tomnomnom/gf@latest"
+  },
+  "pamspider": {
+    "check": "pamspider.py",
+    "install": "git clone https://github.com/Bo0oM/PamSpider.git"
+  },
+  "arjun": {
+    "check": "arjun",
+    "install": "pip install arjun"
+  },
+  "dlox": {
+    "check": "dlox",
+    "install": "pip install dlox"
+  },
+  "xsstrike": {
+    "check": "xsstrike",
+    "install": "pip install xsstrike"
+  },
+  "sqlmap": {
+    "check": "sqlmap",
+    "install": "pip install sqlmap"
+  },
+  "gopherus": {
+    "check": "gopherus",
+    "install": "git clone https://github.com/tarunkant/Gopherus.git"
+  },
+  "interactsh-client": {
+    "check": "interactsh-client",
+    "install": "go install github.com/projectdiscovery/interactsh/cmd/interactsh-client@latest"
+  },
+  "lfi-suite": {
+    "check": "lfi-suite",
+    "install": "git clone https://github.com/D35m0nd142/LFISuite.git"
+  },
+  "fimap": {
+    "check": "fimap",
+    "install": "git clone https://github.com/kurobeats/fimap.git"
+  },
+  "oralizer": {
+    "check": "oralizer",
+    "install": "pip install oralizer"
+  },
+  "nikto": {
+    "check": "nikto",
+    "install": "sudo apt install nikto"
+  },
+  "httpx": {
+    "check": "httpx",
+    "install": "go install github.com/projectdiscovery/httpx/cmd/httpx@latest"
+  },
+  "kiterunner": {
+    "check": "kiterunner",
+    "install": "go install github.com/assetnote/kiterunner@latest"
+  },
+  "jhaddix": {
+    "check": "jhaddix",
+    "install": "go install github.com/jhaddix/domain@latest"
+  },
+  "waybackurls": {
+    "check": "waybackurls",
+    "install": "go install github.com/tomnomnom/waybackurls@latest"
+  },
+  "awsbucketdump": {
+    "check": "awsbucketdump",
+    "install": "git clone https://github.com/jordanpotti/AWSBucketDump.git"
+  },
+  "cmseek": {
+    "check": "cmseek",
+    "install": "git clone https://github.com/Tuhinshubhra/CMSeeK.git"
+  },
+  "wafw00f": {
+    "check": "wafw00f",
+    "install": "pip install wafw00f"
+  },
+  "gitdumper": {
+    "check": "gitdumper",
+    "install": "git clone https://github.com/arthaud/git-dumper.git"
+  },
+  "msfvenom": {
+    "check": "msfvenom",
+    "install": "sudo apt install metasploit-framework"
+  },
+  "metasploit-framework": {
+    "check": "msfconsole",
+    "install": "sudo apt install metasploit-framework"
+  }
+}
