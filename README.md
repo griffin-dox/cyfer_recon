@@ -105,12 +105,57 @@ See `config/tasks.json` for full command mapping.
 
 ## 🔧 Tool Installation & Global Setup
 
-- The CLI will check for missing tools before running tasks and display a list of missing tools with install commands for Linux and Windows.
-- **You must install all required tools manually.**
-- For Go-based tools, ensure `$GOPATH/bin` or `$HOME/go/bin` (Linux) or `%USERPROFILE%\go\bin` (Windows) is in your PATH.
-- For Python tools, consider using `pipx` for global installs, or ensure your Python Scripts directory is in your PATH.
-- For tools installed via `git clone`, follow the tool's README for setup, and move scripts/binaries to a directory in your PATH if needed.
-- For `apt` installs, use WSL on Windows or download from the official website if not available.
+Below are install commands for all tools used in the default and suggested tasks. Run the Linux command in your terminal, or see the Windows/WSL notes. For Go tools, ensure `$GOPATH/bin` or `$HOME/go/bin` (Linux) or `%USERPROFILE%\go\bin` (Windows) is in your PATH. For Python tools, consider using `pipx` for global installs, or ensure your Python Scripts directory is in your PATH. For tools installed via `git clone`, follow the tool's README for setup, and move scripts/binaries to a directory in your PATH if needed.
+
+| Tool                | Linux Install Command                                                                 | Windows/WSL Notes                                                                 |
+|---------------------|-------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------|
+| subfinder           | go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest          | Install Go, run command, add Go bin to PATH                                       |
+| amass               | go install -v github.com/owasp-amass/amass/v3/...@latest                             | Install Go, run command, add Go bin to PATH                                       |
+| assetfinder         | go install github.com/tomnomnom/assetfinder@latest                                   | Install Go, run command, add Go bin to PATH                                       |
+| findomain           | wget https://github.com/Edu4rdSHL/findomain/releases/latest/download/findomain-linux.zip && unzip findomain-linux.zip && sudo mv findomain /usr/local/bin/ | Download Windows binary from GitHub releases, add to PATH                         |
+| dnsx                | go install github.com/projectdiscovery/dnsx/cmd/dnsx@latest                          | Install Go, run command, add Go bin to PATH                                       |
+| masscan             | sudo apt install masscan                                                             | Use WSL or download from https://github.com/robertdavidgraham/masscan/releases    |
+| nmap                | sudo apt install nmap                                                                | Use WSL or download from https://nmap.org/download.html                           |
+| eyewitness          | git clone https://github.com/FortyNorthSecurity/EyeWitness.git && cd EyeWitness && sudo ./setup.sh | Use WSL or follow README for Windows setup                                        |
+| aquatone            | go install github.com/michenriksen/aquatone@latest                                   | Install Go, run command, add Go bin to PATH                                       |
+| gowitness           | go install github.com/sensepost/gowitness@latest                                     | Install Go, run command, add Go bin to PATH                                       |
+| ffuf                | go install github.com/ffuf/ffuf@latest                                               | Install Go, run command, add Go bin to PATH                                       |
+| gobuster            | go install github.com/OJ/gobuster/v3@latest                                          | Install Go, run command, add Go bin to PATH                                       |
+| linkfinder          | pip install linkfinder                                                               | pipx install linkfinder or ensure Scripts dir in PATH                             |
+| gf                  | go install github.com/tomnomnom/gf@latest                                            | Install Go, run command, add Go bin to PATH                                       |
+| jsfinder            | git clone https://github.com/Threezh1/JSFinder.git                                   | Use WSL or follow README for Windows setup                                        |
+| SecretFinder        | git clone https://github.com/m4ll0k/SecretFinder.git                                 | Use WSL or follow README for Windows setup                                        |
+| pamspider           | git clone https://github.com/Bo0oM/PamSpider.git                                     | Use WSL or follow README for Windows setup                                        |
+| arjun               | pip install arjun                                                                    | pipx install arjun or ensure Scripts dir in PATH                                  |
+| paramspider         | git clone https://github.com/devanshbatham/paramspider.git                           | Use WSL or follow README for Windows setup                                        |
+| dlox                | pip install dlox                                                                     | pipx install dlox or ensure Scripts dir in PATH                                   |
+| xsstrike            | pip install xsstrike                                                                 | pipx install xsstrike or ensure Scripts dir in PATH                               |
+| dalfox              | go install github.com/hahwul/dalfox@latest                                           | Install Go, run command, add Go bin to PATH                                       |
+| kxss                | go install github.com/tomnomnom/kxss@latest                                          | Install Go, run command, add Go bin to PATH                                       |
+| sqlmap              | pip install sqlmap                                                                   | pipx install sqlmap or ensure Scripts dir in PATH                                 |
+| gopherus            | git clone https://github.com/tarunkant/Gopherus.git                                  | Use WSL or follow README for Windows setup                                        |
+| interactsh-client   | go install github.com/projectdiscovery/interactsh/cmd/interactsh-client@latest       | Install Go, run command, add Go bin to PATH                                       |
+| ssrfmap             | git clone https://github.com/swisskyrepo/SSRFmap.git                                 | Use WSL or follow README for Windows setup                                        |
+| lfi-suite           | git clone https://github.com/D35m0nd142/LFISuite.git                                 | Use WSL or follow README for Windows setup                                        |
+| fimap               | git clone https://github.com/kurobeats/fimap.git                                     | Use WSL or follow README for Windows setup                                        |
+| liffy               | git clone https://github.com/D35m0nd142/Liffy.git                                    | Use WSL or follow README for Windows setup                                        |
+| oralizer            | pip install oralizer                                                                 | pipx install oralizer or ensure Scripts dir in PATH                               |
+| nikto               | sudo apt install nikto                                                               | Use WSL or download from https://cirt.net/Nikto2                                  |
+| httpx               | go install github.com/projectdiscovery/httpx/cmd/httpx@latest                        | Install Go, run command, add Go bin to PATH                                       |
+| testssl.sh          | git clone https://github.com/drwetter/testssl.sh.git                                 | Use WSL or follow README for Windows setup                                        |
+| kiterunner          | go install github.com/assetnote/kiterunner@latest                                    | Install Go, run command, add Go bin to PATH                                       |
+| apkleaks            | pip install apkleaks                                                                 | pipx install apkleaks or ensure Scripts dir in PATH                               |
+| jhaddix             | go install github.com/jhaddix/domain@latest                                          | Install Go, run command, add Go bin to PATH                                       |
+| waybackurls         | go install github.com/tomnomnom/waybackurls@latest                                   | Install Go, run command, add Go bin to PATH                                       |
+| gau                 | go install github.com/lc/gau/v2/cmd/gau@latest                                       | Install Go, run command, add Go bin to PATH                                       |
+| awsbucketdump       | git clone https://github.com/jordanpotti/AWSBucketDump.git                           | Use WSL or follow README for Windows setup                                        |
+| s3scanner           | go install github.com/sa7mon/S3Scanner@latest                                        | Install Go, run command, add Go bin to PATH                                       |
+| cmseek              | git clone https://github.com/Tuhinshubhra/CMSeeK.git                                 | Use WSL or follow README for Windows setup                                        |
+| wpscan              | sudo gem install wpscan                                                              | Download Windows binary or use WSL                                                |
+| wafw00f             | pip install wafw00f                                                                  | pipx install wafw00f or ensure Scripts dir in PATH                                |
+| gitdumper           | git clone https://github.com/arthaud/git-dumper.git                                  | Use WSL or follow README for Windows setup                                        |
+| gittools            | git clone https://github.com/internetwache/GitTools.git                              | Use WSL or follow README for Windows setup                                        |
+| msfvenom/metasploit | sudo apt install metasploit-framework                                                | Use WSL or download from https://metasploit.com                                   |
 
 ---
 

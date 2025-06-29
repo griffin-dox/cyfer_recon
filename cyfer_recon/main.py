@@ -168,30 +168,120 @@ def cli(
 
     # 4. Tool check
     missing_tools = check_tools(selected_tasks, tasks_config, tools_config)
+    # Extra install info for new/suggested tools
+    extra_tool_info = {
+        "findomain": {
+            "linux": "wget https://github.com/Edu4rdSHL/findomain/releases/latest/download/findomain-linux.zip && unzip findomain-linux.zip && sudo mv findomain /usr/local/bin/",
+            "windows": "Download Windows binary from GitHub releases, add to PATH",
+            "note": "Findomain is a fast subdomain enumerator. Download the binary for your OS and add it to your PATH."
+        },
+        "dnsx": {
+            "linux": "go install github.com/projectdiscovery/dnsx/cmd/dnsx@latest",
+            "windows": "Install Go, run command, add Go bin to PATH",
+            "note": "dnsx is a fast DNS resolver. Ensure Go bin directory is in your PATH."
+        },
+        "gowitness": {
+            "linux": "go install github.com/sensepost/gowitness@latest",
+            "windows": "Install Go, run command, add Go bin to PATH",
+            "note": "gowitness is a screenshot tool. Ensure Go bin directory is in your PATH."
+        },
+        "jsfinder": {
+            "linux": "git clone https://github.com/Threezh1/JSFinder.git",
+            "windows": "Use WSL or follow README for Windows setup",
+            "note": "JSFinder is a JS endpoint discovery tool. Run with Python3."
+        },
+        "SecretFinder": {
+            "linux": "git clone https://github.com/m4ll0k/SecretFinder.git",
+            "windows": "Use WSL or follow README for Windows setup",
+            "note": "SecretFinder finds secrets in JS files. Run with Python3."
+        },
+        "paramspider": {
+            "linux": "git clone https://github.com/devanshbatham/paramspider.git",
+            "windows": "Use WSL or follow README for Windows setup",
+            "note": "ParamSpider discovers parameters. Run with Python3."
+        },
+        "dalfox": {
+            "linux": "go install github.com/hahwul/dalfox@latest",
+            "windows": "Install Go, run command, add Go bin to PATH",
+            "note": "Dalfox is a fast XSS scanner. Ensure Go bin directory is in your PATH."
+        },
+        "kxss": {
+            "linux": "go install github.com/tomnomnom/kxss@latest",
+            "windows": "Install Go, run command, add Go bin to PATH",
+            "note": "KXSS finds reflected XSS params. Ensure Go bin directory is in your PATH."
+        },
+        "ssrfmap": {
+            "linux": "git clone https://github.com/swisskyrepo/SSRFmap.git",
+            "windows": "Use WSL or follow README for Windows setup",
+            "note": "SSRFmap automates SSRF testing. Run with Python3."
+        },
+        "liffy": {
+            "linux": "git clone https://github.com/D35m0nd142/Liffy.git",
+            "windows": "Use WSL or follow README for Windows setup",
+            "note": "Liffy is an LFI fuzzing tool. Run with Python3."
+        },
+        "testssl.sh": {
+            "linux": "git clone https://github.com/drwetter/testssl.sh.git",
+            "windows": "Use WSL or follow README for Windows setup",
+            "note": "testssl.sh checks SSL/TLS configs. Run the script directly."
+        },
+        "apkleaks": {
+            "linux": "pip install apkleaks",
+            "windows": "pipx install apkleaks or ensure Scripts dir in PATH",
+            "note": "Apkleaks scans APKs for secrets."
+        },
+        "gau": {
+            "linux": "go install github.com/lc/gau/v2/cmd/gau@latest",
+            "windows": "Install Go, run command, add Go bin to PATH",
+            "note": "gau collects URLs from public sources."
+        },
+        "s3scanner": {
+            "linux": "go install github.com/sa7mon/S3Scanner@latest",
+            "windows": "Install Go, run command, add Go bin to PATH",
+            "note": "S3Scanner checks S3 buckets."
+        },
+        "wpscan": {
+            "linux": "sudo gem install wpscan",
+            "windows": "Download Windows binary or use WSL",
+            "note": "WPScan scans WordPress sites. Requires Ruby."
+        },
+        "gittools": {
+            "linux": "git clone https://github.com/internetwache/GitTools.git",
+            "windows": "Use WSL or follow README for Windows setup",
+            "note": "GitTools is a suite for .git repo extraction."
+        }
+    }
     if missing_tools:
         console.print("[red]The following required tool(s) are missing. Please install them manually before proceeding.\n")
         for tool, install_cmd in missing_tools.items():
             console.print(f"[bold]{tool}[/bold]")
-            console.print(f"  [yellow]Linux install:[/yellow] {install_cmd}")
-            # Suggest a Windows install if possible, else generic message
-            extra_info = None
-            if install_cmd.startswith("pip install"):
-                win_cmd = install_cmd.replace("sudo ", "")
-                console.print(f"  [yellow]Windows install:[/yellow] {win_cmd}")
-                extra_info = "For global use, consider using 'pipx install {tool}' or ensure your Python Scripts directory is in your PATH."
-            elif install_cmd.startswith("go install"):
-                console.print(f"  [yellow]Windows install:[/yellow] Install Go, then run: {install_cmd}")
-                extra_info = "Go installs binaries to $GOPATH/bin or $HOME/go/bin. Add this directory to your PATH for global use. On Windows, add %USERPROFILE%\\go\\bin to your PATH."
-            elif install_cmd.startswith("git clone"):
-                console.print(f"  [yellow]Windows install:[/yellow] Install Git, then run: {install_cmd}")
-                extra_info = "After cloning, follow the tool's README for setup. For global use, you may need to move the script or binary to a directory in your PATH (e.g., /usr/local/bin or C:/Windows/System32)."
-            elif install_cmd.startswith("sudo apt install"):
-                console.print(f"  [yellow]Windows install:[/yellow] Use WSL or install the tool manually from its website.")
-                extra_info = "If using WSL, run the Linux command above. Otherwise, download the tool from its official website and add it to your PATH."
+            # Check if tool is in extra_tool_info
+            if tool in extra_tool_info:
+                info = extra_tool_info[tool]
+                console.print(f"  [yellow]Linux install:[/yellow] {info['linux']}")
+                console.print(f"  [yellow]Windows install:[/yellow] {info['windows']}")
+                console.print(f"  [blue]Note:[/blue] {info['note']}")
             else:
-                console.print(f"  [yellow]Windows install:[/yellow] Please refer to the tool's documentation.")
-            if extra_info:
-                console.print(f"  [blue]Note:[/blue] {extra_info}")
+                console.print(f"  [yellow]Linux install:[/yellow] {install_cmd}")
+                # Suggest a Windows install if possible, else generic message
+                extra_info = None
+                if install_cmd.startswith("pip install"):
+                    win_cmd = install_cmd.replace("sudo ", "")
+                    console.print(f"  [yellow]Windows install:[/yellow] {win_cmd}")
+                    extra_info = f"For global use, consider using 'pipx install {tool}' or ensure your Python Scripts directory is in your PATH."
+                elif install_cmd.startswith("go install"):
+                    console.print(f"  [yellow]Windows install:[/yellow] Install Go, run command, add Go bin to PATH")
+                    extra_info = "Go installs binaries to $GOPATH/bin or $HOME/go/bin. Add this directory to your PATH for global use. On Windows, add %USERPROFILE%\\go\\bin to your PATH."
+                elif install_cmd.startswith("git clone"):
+                    console.print(f"  [yellow]Windows install:[/yellow] Install Git, then run: {install_cmd}")
+                    extra_info = "After cloning, follow the tool's README for setup. For global use, you may need to move the script or binary to a directory in your PATH (e.g., /usr/local/bin or C:/Windows/System32)."
+                elif install_cmd.startswith("sudo apt install"):
+                    console.print(f"  [yellow]Windows install:[/yellow] Use WSL or install the tool manually from its website.")
+                    extra_info = "If using WSL, run the Linux command above. Otherwise, download the tool from its official website and add it to your PATH."
+                else:
+                    console.print(f"  [yellow]Windows install:[/yellow] Please refer to the tool's documentation.")
+                if extra_info:
+                    console.print(f"  [blue]Note:[/blue] {extra_info}")
         console.print("\n[red]Exiting. All required tools must be installed manually and available in your PATH.")
         raise typer.Exit(1)
 
