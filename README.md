@@ -11,6 +11,7 @@ A modular, extensible Python CLI tool for cybersecurity and bug bounty automatio
 - **pipx** (recommended for global CLI install)
 - **git**
 - **Linux tools**: Many recon tools require `apt`, `go`, or other Linux utilities. See [Supported Recon Tasks](#️-supported-recon-tasks).
+- **Recon tools**: You must install all required recon tools manually. The CLI will list missing tools and provide install commands for Linux and Windows, plus extra info for global setup (see below).
 
 ### For Linux/Kali/WSL Users
 1. **Clone the repo:**
@@ -53,10 +54,9 @@ cyfer-recon
 ### Example CLI Options
 
 ```bash
-cyfer-recon --targets targets.txt --setup-tools
+cyfer-recon --targets targets.txt
 ```
 - `--targets`: Path to a file or comma-separated list of targets
-- `--setup-tools`: Automatically download and set up any missing tools globally
 
 ---
 
@@ -78,28 +78,39 @@ When running tasks that require payloads or wordlists, the CLI will prompt you t
 
 ## 🛠️ Supported Recon Tasks
 
-- Subdomain Enumeration (subfinder, amass, assetfinder)
+- Subdomain Enumeration (subfinder, amass, assetfinder, findomain, dnsx)
 - Port Scanning (masscan, nmap)
-- Screenshot Capture (eyewitness, aquatone)
-- Directory Brute Forcing (ffuf, gobuster)
-- JavaScript Analysis (linkfinder, gf)
-- Parameter Discovery (pamspider, arjun)
-- XSS Detection (dlox, xsstrike)
+- Screenshot Capture (eyewitness, aquatone, gowitness)
+- Directory Brute Forcing (ffuf, gobuster, HTTPS support)
+- JavaScript Analysis (linkfinder, gf, jsfinder, SecretFinder)
+- Parameter Discovery (pamspider, arjun, paramspider)
+- XSS Detection (dlox, xsstrike, dalfox, kxss)
 - SQL Injection Testing (sqlmap)
-- SSRF Discovery (gopherus, interactsh)
-- LFI/RFI Detection (lfi-suite, fimap)
-- Open Redirect Detection (oralizer)
-- Security Headers Check (nikto, httpx)
-- API Recon (kiterunner)
-- Content Discovery (jhaddix, waybackurls)
-- S3 Bucket Enumeration (awsbucketdump)
-- CMS Enumeration (cmseek)
+- SSRF Discovery (gopherus, interactsh-client, ssrfmap)
+- LFI/RFI Detection (lfi-suite, fimap, liffy)
+- Open Redirect Detection (oralizer, ffuf)
+- Security Headers Check (nikto, httpx, testssl.sh)
+- API Recon (kiterunner, apkleaks)
+- Content Discovery (jhaddix, waybackurls, gau)
+- S3 Bucket Enumeration (awsbucketdump, s3scanner)
+- CMS Enumeration (cmseek, wpscan)
 - WAF Detection (wafw00f)
-- Information Disclosure (gitdumper)
+- Information Disclosure (gitdumper, gittools)
 - Reverse Shell Generation (msfvenom)
 - Mass Exploitation (metasploit)
 
 See `config/tasks.json` for full command mapping.
+
+---
+
+## 🔧 Tool Installation & Global Setup
+
+- The CLI will check for missing tools before running tasks and display a list of missing tools with install commands for Linux and Windows.
+- **You must install all required tools manually.**
+- For Go-based tools, ensure `$GOPATH/bin` or `$HOME/go/bin` (Linux) or `%USERPROFILE%\go\bin` (Windows) is in your PATH.
+- For Python tools, consider using `pipx` for global installs, or ensure your Python Scripts directory is in your PATH.
+- For tools installed via `git clone`, follow the tool's README for setup, and move scripts/binaries to a directory in your PATH if needed.
+- For `apt` installs, use WSL on Windows or download from the official website if not available.
 
 ---
 
@@ -134,7 +145,7 @@ For questions or suggestions, open an issue or start a discussion!
 ---
 
 ## 🆘 Troubleshooting & Tips
-- **Missing tools:** Use `--setup-tools` or follow the install commands shown in the CLI.
+- **Missing tools:** The CLI will show missing tools and install commands. Install them manually and ensure they are in your PATH.
 - **Permission errors:** Some tools require `sudo` or special permissions. Run the CLI as a user with appropriate rights.
 - **Windows issues:** Use WSL for best compatibility. Native Windows is not fully supported.
 - **Output not found:** Check the `{target}/` directory for results and logs.
@@ -151,7 +162,7 @@ MIT
 - **Q:** How do I add a new recon task?
   - **A:** Add it to `config/tasks.json` and ensure the tool is in `config/tools.json`.
 - **Q:** How do I install missing tools?
-  - **A:** Use `--setup-tools` or let the tool prompt you to install them.
+  - **A:** The CLI will show missing tools and install commands. Install them manually and ensure they are in your PATH.
 - **Q:** Can I run this on Windows?
   - **A:** The tool is designed for Linux/Kali Linux. For best results on Windows, use WSL (Windows Subsystem for Linux) with a supported Linux distribution. Some tools and commands will not work in native Windows environments.
 - **Q:** How do I ignore output and logs in git?
