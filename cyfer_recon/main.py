@@ -4,7 +4,7 @@ from rich.console import Console
 from rich.panel import Panel
 import questionary
 from cyfer_recon.core.utils import load_targets, save_targets, prepare_output_dirs
-from cyfer_recon.core.tool_checker import check_tools, install_tools
+from cyfer_recon.core.tool_checker import check_tools
 from cyfer_recon.core.task_runner import run_tasks
 import json
 import os
@@ -169,18 +169,31 @@ def cli(
     # 4. Tool check
     missing_tools = check_tools(selected_tasks, tasks_config, tools_config)
     if missing_tools:
-        console.print("[yellow]Some required tools are missing:")
+        console.print("[red]The following required tool(s) are missing. Please install them manually before proceeding.\n")
         for tool, install_cmd in missing_tools.items():
-            console.print(f"[bold]{tool}[/bold]: {install_cmd}")
-        if setup_tools or questionary.confirm("Download and setup missing tools globally now?").ask():
-            install_tools(missing_tools, console=console)
-            # Re-check after install
-            missing_tools = check_tools(selected_tasks, tasks_config, tools_config)
-            if missing_tools:
-                console.print("[red]Some tools could not be installed. Exiting.")
-                raise typer.Exit(1)
-        else:
-            typer.confirm("Continue anyway?", abort=True)
+            console.print(f"[bold]{tool}[/bold]")
+            console.print(f"  [yellow]Linux install:[/yellow] {install_cmd}")
+            # Suggest a Windows install if possible, else generic message
+            extra_info = None
+            if install_cmd.startswith("pip install"):
+                win_cmd = install_cmd.replace("sudo ", "")
+                console.print(f"  [yellow]Windows install:[/yellow] {win_cmd}")
+                extra_info = "For global use, consider using 'pipx install {tool}' or ensure your Python Scripts directory is in your PATH."
+            elif install_cmd.startswith("go install"):
+                console.print(f"  [yellow]Windows install:[/yellow] Install Go, then run: {install_cmd}")
+                extra_info = "Go installs binaries to $GOPATH/bin or $HOME/go/bin. Add this directory to your PATH for global use. On Windows, add %USERPROFILE%\\go\\bin to your PATH."
+            elif install_cmd.startswith("git clone"):
+                console.print(f"  [yellow]Windows install:[/yellow] Install Git, then run: {install_cmd}")
+                extra_info = "After cloning, follow the tool's README for setup. For global use, you may need to move the script or binary to a directory in your PATH (e.g., /usr/local/bin or C:/Windows/System32)."
+            elif install_cmd.startswith("sudo apt install"):
+                console.print(f"  [yellow]Windows install:[/yellow] Use WSL or install the tool manually from its website.")
+                extra_info = "If using WSL, run the Linux command above. Otherwise, download the tool from its official website and add it to your PATH."
+            else:
+                console.print(f"  [yellow]Windows install:[/yellow] Please refer to the tool's documentation.")
+            if extra_info:
+                console.print(f"  [blue]Note:[/blue] {extra_info}")
+        console.print("\n[red]Exiting. All required tools must be installed manually and available in your PATH.")
+        raise typer.Exit(1)
 
     # 5. Execution mode
     exec_mode = questionary.select(

