@@ -5,7 +5,7 @@ from rich.panel import Panel
 import questionary
 from cyfer_recon.core.utils import load_targets, save_targets, prepare_output_dirs
 from cyfer_recon.core.tool_checker import check_tools
-from cyfer_recon.core.task_runner import run_tasks
+from cyfer_recon.core.task_runner import run_tasks, postprocess_subdomains
 import json
 import os
 import sys
@@ -42,7 +42,9 @@ def prompt_targets():
 
 def cli(
     targets: str = typer.Option(None, help="Comma-separated targets or path to file."),
-    setup_tools: bool = typer.Option(False, help="Automatically download and setup missing tools globally.")
+    setup_tools: bool = typer.Option(False, help="Automatically download and setup missing tools globally."),
+    skip_live_check: bool = typer.Option(False, help="Skip live subdomain check after deduplication."),
+    live_check_tool: str = typer.Option('httpx', help="Tool to use for live subdomain check: httpx or dnsx."),
 ):
     console.print(Panel("[bold cyan]Cybersecurity Recon Automation CLI Tool[/bold cyan]", expand=False))
 
@@ -321,6 +323,16 @@ def cli(
             wordlists=wordlists,
             payloads=payloads
         )
+        # Post-processing for subdomain enumeration
+        if any(task.lower().startswith('automated subdomain enumeration') for task in selected_tasks):
+            from cyfer_recon.core.task_runner import postprocess_subdomains
+            postprocess_subdomains(
+                output_dir,
+                console=console,
+                skip_live_check=skip_live_check,
+                tool_preference=live_check_tool,
+                status_codes=[200, 301, 302, 403, 401]
+            )
 
 def main():
     app.command()(cli)

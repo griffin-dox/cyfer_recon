@@ -1,194 +1,194 @@
 {
   "subfinder": {
     "check": "subfinder",
-    "install": "go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest"
+    "install": "Kali: go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest; Windows: go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest"
   },
   "amass": {
     "check": "amass",
-    "install": "go install -v github.com/owasp-amass/amass/v3/...@latest"
+    "install": "Kali: sudo apt-get update && sudo apt-get install -y amass; Windows: winget install --id=OWASP.Amass -e"
   },
   "assetfinder": {
     "check": "assetfinder",
-    "install": "go install github.com/tomnomnom/assetfinder@latest"
+    "install": "Kali: go install github.com/tomnomnom/assetfinder@latest; Windows: go install github.com/tomnomnom/assetfinder@latest"
   },
   "masscan": {
     "check": "masscan",
-    "install": "sudo apt install masscan"
+    "install": "Kali: sudo apt-get install -y masscan; Windows: Download masscan64.exe from the MasscanForWindows repo and install WinPcap/npcap"
   },
   "nmap": {
     "check": "nmap",
-    "install": "sudo apt install nmap"
+    "install": "Kali: sudo apt-get install -y nmap; Windows: Download and run the official Windows installer from nmap.org/download.html"
   },
   "eyewitness": {
     "check": "eyewitness",
-    "install": "git clone https://github.com/FortyNorthSecurity/EyeWitness.git && cd EyeWitness && sudo ./setup.sh"
+    "install": "Kali: git clone https://github.com/FortyNorthSecurity/EyeWitness.git && cd EyeWitness && sudo ./setup.sh; Windows: Use WSL or follow README for Windows setup"
   },
   "aquatone": {
     "check": "aquatone",
-    "install": "go install github.com/michenriksen/aquatone@latest"
+    "install": "Kali: Download the latest Linux release zip, unzip, and move the aquatone binary to /usr/local/bin; Windows: Download the Windows zip from the releases, unzip and place aquatone.exe in your PATH"
   },
   "ffuf": {
     "check": "ffuf",
-    "install": "go install github.com/ffuf/ffuf@latest"
+    "install": "Kali: sudo apt-get install -y ffuf; Windows: Download the Windows binary from ffuf releases and add to PATH, or compile from source with Go"
   },
   "gobuster": {
     "check": "gobuster",
-    "install": "go install github.com/OJ/gobuster/v3@latest"
+    "install": "Kali: sudo apt-get install -y gobuster; Windows: Download the Windows release from gobuster releases or build with Go"
   },
   "linkfinder": {
     "check": "linkfinder",
-    "install": "pip install linkfinder"
+    "install": "Kali: pip3 install linkfinder; Windows: pip3 install linkfinder"
   },
   "gf": {
     "check": "gf",
-    "install": "go install github.com/tomnomnom/gf@latest"
+    "install": "Kali: go install github.com/tomnomnom/gf@latest; Windows: go install github.com/tomnomnom/gf@latest"
   },
   "pamspider": {
     "check": "pamspider.py",
-    "install": "git clone https://github.com/Bo0oM/PamSpider.git"
+    "install": "Kali: git clone https://github.com/Bo0oM/PamSpider.git; Windows: git clone https://github.com/Bo0oM/PamSpider.git"
   },
   "arjun": {
     "check": "arjun",
-    "install": "pip install arjun"
+    "install": "Kali: pip3 install arjun; Windows: pip3 install arjun"
   },
   "dlox": {
     "check": "dlox",
-    "install": "pip install dlox"
+    "install": "Kali: pip3 install dlox; Windows: pip3 install dlox"
   },
   "xsstrike": {
     "check": "xsstrike",
-    "install": "pip install xsstrike"
+    "install": "Kali: pip3 install xsstrike; Windows: pip3 install xsstrike"
   },
   "sqlmap": {
     "check": "sqlmap",
-    "install": "pip install sqlmap"
+    "install": "Kali: sudo apt-get install -y sqlmap; Windows: Download sqlmap.zip from sqlmap.org or GitHub, unzip, and run python sqlmap.py"
   },
   "gopherus": {
     "check": "gopherus",
-    "install": "git clone https://github.com/tarunkant/Gopherus.git"
+    "install": "Kali: git clone https://github.com/tarunkant/Gopherus.git; Windows: git clone https://github.com/tarunkant/Gopherus.git"
   },
   "interactsh-client": {
     "check": "interactsh-client",
-    "install": "go install github.com/projectdiscovery/interactsh/cmd/interactsh-client@latest"
+    "install": "Kali: go install github.com/projectdiscovery/interactsh/cmd/interactsh-client@latest; Windows: go install github.com/projectdiscovery/interactsh/cmd/interactsh-client@latest"
   },
   "lfi-suite": {
     "check": "lfi-suite",
-    "install": "git clone https://github.com/D35m0nd142/LFISuite.git"
+    "install": "Kali: git clone https://github.com/D35m0nd142/LFISuite.git; Windows: git clone https://github.com/D35m0nd142/LFISuite.git"
   },
   "fimap": {
     "check": "fimap",
-    "install": "git clone https://github.com/kurobeats/fimap.git"
+    "install": "Kali: git clone https://github.com/kurobeats/fimap.git; Windows: git clone https://github.com/kurobeats/fimap.git"
   },
   "oralizer": {
     "check": "oralizer",
-    "install": "pip install oralizer"
+    "install": "Kali: pip3 install oralizer; Windows: pip3 install oralizer"
   },
   "nikto": {
     "check": "nikto",
-    "install": "sudo apt install nikto"
+    "install": "Kali: sudo apt-get install -y nikto; Windows: Install Strawberry Perl or use choco install nikto if available"
   },
   "httpx": {
     "check": "httpx",
-    "install": "go install github.com/projectdiscovery/httpx/cmd/httpx@latest"
+    "install": "Kali: go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest; Windows: go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest"
   },
   "kiterunner": {
     "check": "kiterunner",
-    "install": "go install github.com/assetnote/kiterunner@latest"
+    "install": "Kali: go install github.com/assetnote/kiterunner@latest; Windows: go install github.com/assetnote/kiterunner@latest"
   },
   "jhaddix": {
     "check": "jhaddix",
-    "install": "go install github.com/jhaddix/domain@latest"
+    "install": "Kali: go install github.com/jhaddix/domain@latest; Windows: go install github.com/jhaddix/domain@latest"
   },
   "waybackurls": {
     "check": "waybackurls",
-    "install": "go install github.com/tomnomnom/waybackurls@latest"
+    "install": "Kali: go install github.com/tomnomnom/waybackurls@latest; Windows: go install github.com/tomnomnom/waybackurls@latest"
   },
   "awsbucketdump": {
     "check": "awsbucketdump",
-    "install": "git clone https://github.com/jordanpotti/AWSBucketDump.git"
+    "install": "Kali: git clone https://github.com/jordanpotti/AWSBucketDump.git; Windows: git clone https://github.com/jordanpotti/AWSBucketDump.git"
   },
   "cmseek": {
     "check": "cmseek",
-    "install": "git clone https://github.com/Tuhinshubhra/CMSeeK.git"
+    "install": "Kali: git clone https://github.com/Tuhinshubhra/CMSeeK.git && cd CMSeeK && sudo pip3 install -r requirements.txt; Windows: git clone https://github.com/Tuhinshubhra/CMSeeK.git && cd CMSeeK && pip3 install -r requirements.txt"
   },
   "wafw00f": {
     "check": "wafw00f",
-    "install": "pip install wafw00f"
+    "install": "Kali: sudo apt-get install -y wafw00f; Windows: pip3 install wafw00f"
   },
   "gitdumper": {
     "check": "gitdumper",
-    "install": "git clone https://github.com/arthaud/git-dumper.git"
+    "install": "Kali: git clone https://github.com/arthaud/git-dumper.git; Windows: git clone https://github.com/arthaud/git-dumper.git"
   },
   "msfvenom": {
     "check": "msfvenom",
-    "install": "sudo apt install metasploit-framework"
+    "install": "Kali: sudo apt-get install -y metasploit-framework; Windows: Download and run the Metasploit for Windows installer from Rapid7 or use choco install metasploit"
   },
   "metasploit-framework": {
     "check": "msfconsole",
-    "install": "sudo apt install metasploit-framework"
+    "install": "Kali: sudo apt-get install -y metasploit-framework; Windows: Download and run the Metasploit for Windows installer from Rapid7 or use choco install metasploit"
   },
   "findomain": {
     "check": "findomain",
-    "install": "wget https://github.com/Edu4rdSHL/findomain/releases/latest/download/findomain-linux.zip && unzip findomain-linux.zip && sudo mv findomain /usr/local/bin/"
+    "install": "Kali: wget -qO findomain.zip https://github.com/Edu4rdSHL/findomain/releases/latest/download/findomain-linux.zip && unzip findomain.zip && sudo mv findomain /usr/local/bin/; Windows: Download findomain-windows.zip from Findomain releases, unzip, and add findomain.exe to your PATH"
   },
   "dnsx": {
     "check": "dnsx",
-    "install": "go install github.com/projectdiscovery/dnsx/cmd/dnsx@latest"
+    "install": "Kali: go install -v github.com/projectdiscovery/dnsx/cmd/dnsx@latest; Windows: go install -v github.com/projectdiscovery/dnsx/cmd/dnsx@latest"
   },
   "gowitness": {
     "check": "gowitness",
-    "install": "go install github.com/sensepost/gowitness@latest"
+    "install": "Kali: go install github.com/sensepost/gowitness@latest; Windows: go install github.com/sensepost/gowitness@latest"
   },
   "jsfinder": {
     "check": "jsfinder.py",
-    "install": "git clone https://github.com/Threezh1/JSFinder.git"
+    "install": "Kali: git clone https://github.com/Threezh1/JSFinder.git; Windows: git clone https://github.com/Threezh1/JSFinder.git"
   },
   "SecretFinder": {
     "check": "SecretFinder.py",
-    "install": "git clone https://github.com/m4ll0k/SecretFinder.git"
+    "install": "Kali: git clone https://github.com/m4ll0k/SecretFinder.git; Windows: git clone https://github.com/m4ll0k/SecretFinder.git"
   },
   "paramspider": {
     "check": "paramspider.py",
-    "install": "git clone https://github.com/devanshbatham/paramspider.git"
+    "install": "Kali: git clone https://github.com/devanshbatham/paramspider.git; Windows: git clone https://github.com/devanshbatham/paramspider.git"
   },
   "dalfox": {
     "check": "dalfox",
-    "install": "go install github.com/hahwul/dalfox@latest"
+    "install": "Kali: go install github.com/hahwul/dalfox/v2@latest; Windows: go install github.com/hahwul/dalfox/v2@latest"
   },
   "kxss": {
     "check": "kxss",
-    "install": "go install github.com/tomnomnom/kxss@latest"
+    "install": "Kali: go install github.com/Emoe/kxss@latest; Windows: go install github.com/Emoe/kxss@latest"
   },
   "ssrfmap": {
     "check": "ssrfmap.py",
-    "install": "git clone https://github.com/swisskyrepo/SSRFmap.git"
+    "install": "Kali: git clone https://github.com/swisskyrepo/SSRFmap.git; Windows: git clone https://github.com/swisskyrepo/SSRFmap.git"
   },
   "liffy": {
     "check": "liffy.py",
-    "install": "git clone https://github.com/D35m0nd142/Liffy.git"
+    "install": "Kali: git clone https://github.com/D35m0nd142/Liffy.git; Windows: git clone https://github.com/D35m0nd142/Liffy.git"
   },
   "testssl.sh": {
     "check": "testssl.sh",
-    "install": "git clone https://github.com/drwetter/testssl.sh.git"
+    "install": "Kali: git clone --depth 1 https://github.com/drwetter/testssl.sh.git; Windows: Run under WSL or MSYS2/Cygwin (bash is needed); clone repository as above or use the official Docker image"
   },
   "apkleaks": {
     "check": "apkleaks",
-    "install": "pip install apkleaks"
+    "install": "Kali: pip3 install apkleaks; Windows: pip3 install apkleaks"
   },
   "gau": {
     "check": "gau",
-    "install": "go install github.com/lc/gau/v2/cmd/gau@latest"
+    "install": "Kali: go install github.com/lc/gau/v2/cmd/gau@latest; Windows: go install github.com/lc/gau/v2/cmd/gau@latest"
   },
   "s3scanner": {
     "check": "s3scanner",
-    "install": "go install github.com/sa7mon/S3Scanner@latest"
+    "install": "Kali: sudo apt-get install -y s3scanner; Windows: winget install s3scanner or go install -v github.com/sa7mon/S3Scanner@latest"
   },
   "wpscan": {
     "check": "wpscan",
-    "install": "sudo gem install wpscan"
+    "install": "Kali: sudo apt-get install -y wpscan; Windows: Use WSL or download the Windows gem package. (Chocolatey: choco install wpscan if you have it.)"
   },
   "gittools": {
     "check": "extractor.sh",
-    "install": "git clone https://github.com/internetwache/GitTools.git"
+    "install": "Kali: git clone https://github.com/internetwache/GitTools.git; Windows: git clone https://github.com/internetwache/GitTools.git"
   }
 }

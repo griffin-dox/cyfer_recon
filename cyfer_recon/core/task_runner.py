@@ -39,9 +39,13 @@ def run_task_for_target(target: str, task: str, commands: List[str], output_dir:
         # Use task and index in output filename to avoid overwrite
         result_file = os.path.join(task_dir, f"{tool}_{task.replace(' ', '_').lower()}_{idx+1}{ext}")
         cmd_fmt = cmd.replace('{target}', target).replace('{output}', task_dir)
-        cmd_fmt = re.sub(r'(-o(?:N|G)?\s+)[^\s]+', f"\\1{result_file}", cmd_fmt)
+        # Safely replace output file in command (handle Windows paths)
+        def output_repl(m):
+            return m.group(1) + result_file
+        cmd_fmt = re.sub(r'(-o(?:N|G)?\s+)[^\s]+', output_repl, cmd_fmt)
         if '>' in cmd_fmt:
-            cmd_fmt = re.sub(r'>\s*[^\s]+', f'> {result_file}', cmd_fmt)
+            # Safely replace output redirection
+            cmd_fmt = re.sub(r'>\s*[^\s]+', f'> "{result_file}"', cmd_fmt)
         log_file = os.path.join(logs_dir, f"{task.replace(' ', '_').lower()}.log")
         bar_task_id = None
         if progress is not None:
@@ -153,3 +157,73 @@ def run_tasks(targets: List[str], selected_tasks: List[str], tasks_config: Dict[
         console.print("[red]Summary of failed jobs:")
         for t, task in failed_jobs:
             console.print(f"[red]  {task} for {t}")
+
+def deduplicate_subdomains(subdomain_files: list, output_file: str, console=None, sort_result=True):
+    """Combine, deduplicate, and clean subdomain results from multiple files."""
+    subdomains = set()
+    for file in subdomain_files:
+        if os.path.isfile(file):
+            with open(file, 'r', encoding='utf-8') as f:
+                for line in f:
+                    line = line.strip()
+                    if line:
+                        subdomains.add(line)
+    if sort_result:
+        subdomains = sorted(subdomains)
+    with open(output_file, 'w', encoding='utf-8') as f:
+        for sub in subdomains:
+            f.write(f"{sub}\n")
+    if console:
+        console.print(f"[green]Deduplicated subdomains saved to {output_file} ({len(subdomains)} unique)")
+    return output_file
+
+def check_live_subdomains(input_file: str, output_file: str, console=None, tool_preference='httpx', status_codes=None):
+    """Check which subdomains are alive using httpx (preferred) or dnsx."""
+    import shutil
+    if not os.path.isfile(input_file):
+        if console:
+            console.print(f"[yellow]Input file {input_file} not found. Skipping live check.")
+        return
+    if status_codes is None:
+        status_codes = [200, 301, 302, 403, 401]
+    # Prefer httpx
+    if tool_preference == 'httpx' and shutil.which('httpx'):
+        cmd = f"cat {input_file} | httpx -silent -status-code -o {output_file}"
+        if status_codes:
+            codes = ','.join(str(c) for c in status_codes)
+            cmd = f"cat {input_file} | httpx -silent -status-code -o {output_file} -mc {codes}"
+        tool_used = 'httpx'
+    elif shutil.which('dnsx'):
+        cmd = f"cat {input_file} | dnsx -silent -o {output_file}"
+        tool_used = 'dnsx'
+    else:
+        if console:
+            console.print("[yellow]Neither httpx nor dnsx found. Skipping live subdomain check.")
+        return
+    try:
+        subprocess.run(cmd, shell=True, check=True)
+        if console:
+            console.print(f"[green]Live subdomains checked with {tool_used}, results saved to {output_file}")
+    except Exception as e:
+        if console:
+            console.print(f"[red]Error running {tool_used} for live subdomain check: {e}")
+
+def postprocess_subdomains(target_dir: str, console=None, skip_live_check=False, tool_preference='httpx', status_codes=None):
+    """Deduplicate and check live subdomains for a target directory."""
+    # Find all subdomain output files
+    subdomain_files = []
+    subdomain_dir = os.path.join(target_dir, 'subdomains')
+    if os.path.isdir(subdomain_dir):
+        for f in os.listdir(subdomain_dir):
+            if f.endswith('.txt'):
+                subdomain_files.append(os.path.join(subdomain_dir, f))
+    # Add findomain, dnsx, etc. if present in main dir
+    for f in ['findomain.txt', 'dnsx.txt']:
+        fpath = os.path.join(subdomain_dir, f)
+        if os.path.isfile(fpath):
+            subdomain_files.append(fpath)
+    unique_file = os.path.join(target_dir, 'unique_subdomains.txt')
+    deduplicate_subdomains(subdomain_files, unique_file, console=console)
+    if not skip_live_check:
+        live_file = os.path.join(target_dir, 'live_subdomains.txt')
+        check_live_subdomains(unique_file, live_file, console=console, tool_preference=tool_preference, status_codes=status_codes)
