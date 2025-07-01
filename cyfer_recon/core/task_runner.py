@@ -4,7 +4,7 @@ import re
 import socket
 from typing import List, Dict, Any, Tuple
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from rich.progress import Progress, BarColumn, TextColumn, TimeElapsedColumn, SpinnerColumn
+from rich.progress import Progress, BarColumn, TextColumn, TimeElapsedColumn, SpinnerColumn, TimeRemainingColumn
 
 def get_tool_and_ext(cmd: str) -> Tuple[str, str]:
     """Extract tool name and output file extension from a command string."""
@@ -147,6 +147,7 @@ def run_tasks(targets: List[str], selected_tasks: List[str], tasks_config: Dict[
         BarColumn(),
         TextColumn("[bold]{task.fields[status]}", justify="left"),
         TimeElapsedColumn(),
+        TimeRemainingColumn(),  # ETA column
     ]
     with Progress(*progress_columns) as progress:
         parent_task_id = progress.add_task("All Tasks", total=len(jobs), status="Running")
