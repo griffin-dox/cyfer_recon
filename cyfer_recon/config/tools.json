@@ -11,10 +11,6 @@
     "check": "assetfinder",
     "install": "Kali: go install github.com/tomnomnom/assetfinder@latest; Windows: go install github.com/tomnomnom/assetfinder@latest"
   },
-  "masscan": {
-    "check": "masscan",
-    "install": "Kali: sudo apt-get install -y masscan; Windows: Download masscan64.exe from the MasscanForWindows repo and install WinPcap/npcap"
-  },
   "nmap": {
     "check": "nmap",
     "install": "Kali: sudo apt-get install -y nmap; Windows: Download and run the official Windows installer from nmap.org/download.html"

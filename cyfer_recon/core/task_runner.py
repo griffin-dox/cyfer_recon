@@ -1,7 +1,6 @@
 import subprocess
 import os
 import re
-import socket
 from typing import List, Dict, Any, Tuple
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from rich.progress import Progress, BarColumn, TextColumn, TimeElapsedColumn, SpinnerColumn, TimeRemainingColumn
@@ -24,14 +23,6 @@ def get_tool_and_ext(cmd: str) -> Tuple[str, str]:
     else:
         ext = '.txt'
     return tool, ext
-
-def resolve_domain_to_ips(domain):
-    try:
-        # Returns (hostname, aliaslist, ipaddrlist)
-        _, _, ipaddrlist = socket.gethostbyname_ex(domain)
-        return ipaddrlist
-    except Exception as e:
-        return []
 
 def run_task_for_target(target: str, task: str, commands: List[str], output_dir: str, console: Any, progress: Progress = None, parent_task_id: int = None) -> None:
     """
@@ -71,17 +62,6 @@ def run_task_for_target(target: str, task: str, commands: List[str], output_dir:
             with open(log_file, 'a', encoding='utf-8') as lf:
                 if progress is not None and bar_task_id is not None:
                     progress.update(bar_task_id, status="Running")
-                # Special handling for masscan: resolve domain to IP(s)
-                if tool.lower() == 'masscan' and not re.match(r"^\d+\.\d+\.\d+\.\d+(/\d+)?$", target):
-                    ips = resolve_domain_to_ips(target)
-                    if not ips:
-                        console.print(f"[red]Could not resolve domain '{target}' to IP for masscan. Skipping.")
-                        with open(log_file, 'a', encoding='utf-8') as lf:
-                            lf.write(f"[ERROR] Could not resolve domain '{target}' to IP for masscan.\n")
-                        failed_cmds.append(cmd_fmt)
-                        continue
-                    ip_targets = ' '.join(ips)
-                    cmd_fmt = cmd_fmt.replace('{target}', ip_targets)
                 process = subprocess.run(cmd_fmt, shell=True, capture_output=True, text=True)
                 lf.write(f"$ {cmd_fmt}\n{process.stdout}\n{process.stderr}\n")
                 if process.returncode == 0:

@@ -7,9 +7,8 @@
     "cat {output}/subdomains/subfinder.txt | dnsx -silent -o {output}/subdomains/dnsx.txt"
   ],
   "Automated Port Scanning": [
-    "masscan -p1-65535 --rate=1000 -oG {output}/ports/masscan.txt {target}",
     "nmap -p- -sV -T4 -oN {output}/ports/nmap_results.txt {target}",
-    "cat {output}/ports/masscan.txt | grep -oE '[0-9]+' | sort -u | tr '\n' ',' | sed 's/,$//' > {output}/ports/ports.txt",
+    "cat {output}/ports/nmap.txt | grep -oE '[0-9]+' | sort -u | tr '\n' ',' | sed 's/,$//' > {output}/ports/ports.txt",
     "nmap -p$(cat {output}/ports/ports.txt) -sV -T4 -oN {output}/ports/nmap_top_ports.txt {target}"
   ],
   "Automating Screenshot Capture": [
