@@ -1,26 +1,24 @@
 {
   "Automated Subdomain Enumeration": [
-    "subfinder -d {target} -o {output}/subdomains/subfinder.txt",
+    "subfinder -d {target} -silent -o {output}/subdomains/subfinder.txt",
     "amass enum -passive -d {target} -o {output}/subdomains/amass.txt",
-    "assetfinder --subs-only {target} > {output}/subdomains/assetfinder.txt",
+    "assetfinder --subs-only {target} | tee {output}/subdomains/assetfinder.txt",
     "findomain -t {target} -u {output}/subdomains/findomain.txt",
     "cat {output}/subdomains/subfinder.txt | dnsx -silent -o {output}/subdomains/dnsx.txt"
   ],
   "Automated Port Scanning": [
-    "nmap -p- -sV -T4 -oN {output}/ports/nmap_results.txt {target}",
-    "cat {output}/ports/nmap.txt | grep -oE '[0-9]+' | sort -u | tr '\n' ',' | sed 's/,$//' > {output}/ports/ports.txt",
-    "nmap -p$(cat {output}/ports/ports.txt) -sV -T4 -oN {output}/ports/nmap_top_ports.txt {target}"
+    "nmap -p- --open -T4 -oN {output}/ports/nmap_all_ports.txt {target}",
+    "grep '^\\d\\+/tcp' {output}/ports/nmap_all_ports.txt | grep open | cut -d'/' -f1 | sort -n | tr '\\n' ',' | sed 's/,$//' > {output}/ports/open_ports.txt",
+    "nmap -p$(cat {output}/ports/open_ports.txt) -sC -sV -T4 -oN {output}/ports/nmap_detailed.txt {target}"
   ],
   "Automating Screenshot Capture": [
-    "eyewitness -f {output}/subdomains/subfinder.txt -d {output}/screenshots/",
-    "cat {output}/subdomains/subfinder.txt | aquatone -out {output}/screenshots/aquatone_output",
-    "gowitness file -f {output}/subdomains/subfinder.txt -P {output}/screenshots/gowitness/"
+    "eyewitness --web -f {output}/subdomains/subfinder.txt -d {output}/screenshots/ --timeout 10 --no-prompt",
+    "cat {output}/subdomains/subfinder.txt | httprobe | aquatone -out {output}/screenshots/aquatone_output",
+    "gowitness file -f {output}/subdomains/subfinder.txt --threads 20 --delay 100 -P {output}/screenshots/gowitness/"
   ],
   "Automated Directory Brute Forcing": [
-    "ffuf -w {wordlist} -u http://{target}/FUZZ",
-    "gobuster dir -u http://{target} -w {wordlist}",
-    "ffuf -w {wordlist} -u https://{target}/FUZZ",
-    "gobuster dir -u https://{target} -w {wordlist}"
+    "ffuf -w {wordlist} -u https://{target}/FUZZ -mc 200,301,302,404,403,401 -t 50 -o {output}/ffuf_{target}.json -of json",
+    "gobuster dir -u https://{target} -w {wordlist} -s 200,301,302,404,403,401 -t 50 -o {output}/gobuster_{target}.txt"
   ],
   "Automated JavaScript Analysis": [
     "linkfinder -i {output}/urls.txt -o {output}/js/output.txt",
