@@ -29,29 +29,26 @@ def run_task_for_target(target: str, task: str, commands: List[str], output_dir:
     Run all commands for a given target and task, saving output and logs.
     Shows a progress bar for each tool.
     Improved error handling: logs tool, command, exit code, stdout, stderr for each failure.
+    Now prints concise error info to the console instead of writing log files.
     """
     task_dir = output_dir
-    logs_dir = os.path.join(task_dir, 'logs')
-    os.makedirs(logs_dir, exist_ok=True)
+    # logs_dir = os.path.join(task_dir, 'logs')
+    # os.makedirs(logs_dir, exist_ok=True)
     total_cmds = len(commands)
     failed_cmds = []
     for idx, cmd in enumerate(commands):
         tool, ext = get_tool_and_ext(cmd)
-        # Use task and index in output filename to avoid overwrite
         result_file = os.path.join(task_dir, f"{tool}_{task.replace(' ', '_').lower()}_{idx+1}{ext}")
         cmd_fmt = cmd.replace('{target}', target).replace('{output}', task_dir)
-        # Safely replace output file in command (handle Windows paths)
         def output_repl(m):
             return m.group(1) + result_file
         cmd_fmt = re.sub(r'(-o(?:N|G)?\s+)[^\s]+', output_repl, cmd_fmt)
         if '>' in cmd_fmt:
-            # Safely replace output redirection
             cmd_fmt = re.sub(r'>\s*[^\s]+', f'> "{result_file}"', cmd_fmt)
-        log_file = os.path.join(logs_dir, f"{task.replace(' ', '_').lower()}.log")
+        # log_file = os.path.join(logs_dir, f"{task.replace(' ', '_').lower()}.log")
         bar_task_id = None
         if progress is not None:
             bar_task_id = progress.add_task(f"{tool}", status="Running")
-        # Check if tool is present before running
         import shutil
         if shutil.which(tool) is None:
             error_msg = f"[ERROR] Tool '{tool}' not found in PATH."
@@ -63,29 +60,26 @@ def run_task_for_target(target: str, task: str, commands: List[str], output_dir:
                 'stdout': '',
                 'stderr': error_msg
             })
-            with open(log_file, 'a', encoding='utf-8') as lf:
-                lf.write(f"{error_msg}\n")
             continue
         try:
-            with open(log_file, 'a', encoding='utf-8') as lf:
+            if progress is not None and bar_task_id is not None:
+                progress.update(bar_task_id, status="Running")
+            process = subprocess.run(cmd_fmt, shell=True, capture_output=True, text=True)
+            if process.returncode == 0:
                 if progress is not None and bar_task_id is not None:
-                    progress.update(bar_task_id, status="Running")
-                process = subprocess.run(cmd_fmt, shell=True, capture_output=True, text=True)
-                lf.write(f"$ {cmd_fmt}\n{process.stdout}\n{process.stderr}\n")
-                if process.returncode == 0:
-                    if progress is not None and bar_task_id is not None:
-                        progress.update(bar_task_id, status="Finished")
-                else:
-                    if progress is not None and bar_task_id is not None:
-                        progress.update(bar_task_id, status="[red]Error")
-                    failed_cmds.append({
-                        'tool': tool,
-                        'cmd': cmd_fmt,
-                        'exit_code': process.returncode,
-                        'stdout': process.stdout,
-                        'stderr': process.stderr
-                    })
-                    console.print(f"[red]Error running [bold]{tool}[/bold] for [yellow]{target}[/yellow] (task: [cyan]{task}[/cyan]):\n[white]Command:[/white] {cmd_fmt}\n[white]Exit code:[/white] {process.returncode}\n[white]Stdout:[/white]\n{process.stdout}\n[white]Stderr:[/white]\n{process.stderr}")
+                    progress.update(bar_task_id, status="Finished")
+            else:
+                if progress is not None and bar_task_id is not None:
+                    progress.update(bar_task_id, status="[red]Error")
+                failed_cmds.append({
+                    'tool': tool,
+                    'cmd': cmd_fmt,
+                    'exit_code': process.returncode,
+                    'stdout': process.stdout,
+                    'stderr': process.stderr
+                })
+                # Print concise error info
+                console.print(f"[red][{tool}] [bold]{task}[/bold] for [yellow]{target}[/yellow]: [white]Exit code:[/white] {process.returncode}\n[white]Command:[/white] {cmd_fmt}\n[white]Error:[/white] {process.stderr.strip().splitlines()[-1] if process.stderr.strip() else 'No stderr output.'}")
         except Exception as e:
             if progress is not None and bar_task_id is not None:
                 progress.update(bar_task_id, status="[red]Error")
@@ -106,7 +100,7 @@ def run_task_for_target(target: str, task: str, commands: List[str], output_dir:
     if failed_cmds:
         console.print(f"[red]Failed commands for {target} - {task}:")
         for fc in failed_cmds:
-            console.print(f"[red]  Tool: {fc['tool']} | Command: {fc['cmd']} | Exit code: {fc['exit_code']}\n    Stderr: {fc['stderr']}")
+            console.print(f"[red]  Tool: {fc['tool']} | Exit code: {fc['exit_code']} | Error: {fc['stderr'].strip().splitlines()[-1] if fc['stderr'].strip() else 'No stderr output.'}")
 
 def run_tasks(targets: List[str], selected_tasks: List[str], tasks_config: Dict[str, Any], output_dir: str, concurrent: bool, console: Any, wordlists: list = None, payloads: list = None) -> None:
     """
