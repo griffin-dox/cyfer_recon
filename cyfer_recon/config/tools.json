@@ -92,7 +92,7 @@
     "install": "Kali: go install github.com/assetnote/kiterunner/cmd/kr@latest; Windows: go install github.com/assetnote/kiterunner/cmd/kr@latest"
   },
   "jhaddix": {
-    "check": "file:wordlists/jhaddix_content_discovery.txt",
+    "check": "file:/usr/share/wordlists/raft-large-directories.txt",
     "install": "Kali/Windows: wget -O wordlists/jhaddix_content_discovery.txt https://raw.githubusercontent.com/danielmiessler/SecLists/master/Discovery/Web-Content/raft-large-directories.txt"
   },
   "waybackurls": {
