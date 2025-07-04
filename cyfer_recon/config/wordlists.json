@@ -1,6 +1,6 @@
 {
-  "ffuf": "wordlists/dirbuster.txt",
-  "gobuster": "wordlists/dirbuster.txt",
-  "arjun": "wordlists/params.txt",
-  "kiterunner": "wordlists/api.txt"
+  "ffuf": "/usr/share/wordlists/dirbuster.txt",
+  "gobuster": "/usr/share/wordlists/dirbuster.txt",
+  "arjun": "/usr/share/wordlists/params.txt",
+  "kiterunner": "/usr/share/wordlists/api.txt"
 }
