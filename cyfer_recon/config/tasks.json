@@ -3,7 +3,7 @@
     "subfinder -d {target} -silent -o {output}/subdomains/subfinder.txt",
     "amass enum -passive -d {target} -o {output}/subdomains/amass.txt",
     "assetfinder --subs-only {target} | tee {output}/subdomains/assetfinder.txt",
-    "findomain -t {target} -o {output}/subdomains/findomain.txt",
+    "findomain -t {target} -u {output}/subdomains/findomain.txt",
     "cat {output}/subdomains/subfinder.txt | dnsx -silent -o {output}/subdomains/dnsx.txt"
   ],
   "Automated Port Scanning": [
