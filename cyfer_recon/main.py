@@ -40,6 +40,37 @@ def prompt_targets():
     return targets
 
 
+# Add profile support
+PROFILES = {
+    "Quick Recon": [
+        "Automated Subdomain Enumeration",
+        "Automated Port Scanning",
+        "Automated Content Discovery"
+    ],
+    "Full Recon": [
+        "Automated Subdomain Enumeration",
+        "Automated Port Scanning",
+        "Automating Screenshot Capture",
+        "Automated Directory Brute Forcing",
+        "Automated JavaScript Analysis",
+        "Automated Parameter Discovery",
+        "Automated XSS Detection",
+        "Automated SQL Injection Testing",
+        "Automated SSRF Discovery",
+        "Automated LFI and RFI Detection",
+        "Automated Open Redirect Detection",
+        "Automated Security Headers Check",
+        "Automated API Recon",
+        "Automated Content Discovery",
+        "Automated S3 Bucket Enumeration"
+    ],
+    "API Recon": [
+        "Automated API Recon",
+        "Automated Content Discovery"
+    ]
+}
+
+
 def cli(
     targets: str = typer.Option(None, help="Comma-separated targets or path to file."),
     setup_tools: bool = typer.Option(False, help="Automatically download and setup missing tools globally."),
@@ -56,6 +87,7 @@ def cli(
         raise typer.Exit(1)
 
     # 1. Collect targets
+    # Enhanced target input: validate and show summary
     if targets:
         if os.path.isfile(targets):
             try:
@@ -75,19 +107,35 @@ def cli(
         except Exception as e:
             console.print(f"[red]Error: {e}")
             raise typer.Exit(1)
-    if not targets_list:
-        console.print("[red]No targets provided. Exiting.")
+    # Validate and normalize targets
+    valid_targets = []
+    for t in targets_list:
+        if t and ('.' in t or t.replace('.', '').isdigit()):
+            valid_targets.append(t)
+        else:
+            console.print(f"[yellow]Skipping invalid target: {t}")
+    if not valid_targets:
+        console.print("[red]No valid targets provided. Exiting.")
         raise typer.Exit(1)
+    console.print(Panel(f"[green]Targets to scan:[/green]\n" + "\n".join(valid_targets), expand=False))
+    targets_list = valid_targets
 
     # 2. Load tasks and tools
     tasks_config = load_json(TASKS_FILE)
     tools_config = load_json(TOOLS_FILE)
     task_names = list(tasks_config.keys())
 
-    # 3. Task selection
-    selected_tasks = questionary.checkbox(
-        "Select recon tasks to run:", choices=task_names
+    # 3. Task selection or profile
+    profile_or_custom = questionary.select(
+        "Select a recon profile or choose custom tasks:",
+        choices=[*PROFILES.keys(), "Custom"]
     ).ask()
+    if profile_or_custom != "Custom":
+        selected_tasks = PROFILES[profile_or_custom]
+    else:
+        selected_tasks = questionary.checkbox(
+            "Select recon tasks to run:", choices=task_names
+        ).ask()
     if not selected_tasks:
         console.print("[red]No tasks selected. Exiting.")
         raise typer.Exit(1)
@@ -309,7 +357,19 @@ def cli(
             if '{output}/gitdump/' in cmd:
                 output_folders.add('gitdump')
 
+    # Add dry-run mode
+    dry_run = questionary.confirm("Do you want to do a dry run (preview commands only)?").ask()
+    if dry_run:
+        console.print("[bold yellow]Dry run mode: displaying commands that would be executed.[/bold yellow]")
+        for target in targets_list:
+            for task in selected_tasks:
+                for cmd in tasks_config[task]:
+                    preview_cmd = cmd.replace('{target}', target).replace('{output}', os.path.join(os.getcwd(), target))
+                    console.print(f"[cyan]{task}[/cyan] for [green]{target}[/green]: [white]{preview_cmd}[/white]")
+        raise typer.Exit(0)
+
     # 6. Prepare output dirs and run tasks per target
+    summary = []
     for target in targets_list:
         output_dir = os.path.join(os.getcwd(), target)
         prepare_output_dirs(output_dir, target, selected_tasks, extra_folders=list(output_folders))
@@ -333,6 +393,15 @@ def cli(
                 tool_preference=live_check_tool,
                 status_codes=[200, 301, 302, 403, 401]
             )
+        # Collect summary info
+        summary.append(f"[green]{target}[/green]: [cyan]{', '.join(selected_tasks)}[/cyan] -> [white]{output_dir}[/white]")
+    # Generate summary report
+    report_path = os.path.join(os.getcwd(), "cyfer_recon_summary.md")
+    with open(report_path, 'w', encoding='utf-8') as f:
+        f.write("# Cyfer Recon Summary\n\n")
+        for line in summary:
+            f.write(f"- {line}\n")
+    console.print(Panel(f"[bold green]Recon complete! Summary saved to {report_path}[/bold green]", expand=False))
 
 def main():
     app.command()(cli)
