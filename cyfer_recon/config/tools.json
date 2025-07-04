@@ -92,8 +92,8 @@
     "install": "Kali: go install github.com/assetnote/kiterunner@latest; Windows: go install github.com/assetnote/kiterunner@latest"
   },
   "jhaddix": {
-    "check": "jhaddix",
-    "install": "Kali: go install github.com/jhaddix/domain@latest; Windows: go install github.com/jhaddix/domain@latest"
+    "check": "file:wordlists/jhaddix_content_discovery.txt",
+    "install": "Kali/Windows: wget https://raw.githubusercontent.com/jhaddix/content-discovery-wordlists/master/raft-large-words.txt -O wordlists/jhaddix_content_discovery.txt"
   },
   "waybackurls": {
     "check": "waybackurls",

@@ -216,9 +216,8 @@ def cli(
     else:
         payloads = []
 
-    # 4. Tool check
-    missing_tools = check_tools(selected_tasks, tasks_config, tools_config)
-    # Extra install info for new/suggested tools
+    # 4. Tool check (single, clear block)
+    # Build a map of extra install info for tools
     extra_tool_info = {
         "findomain": {
             "linux": "wget https://github.com/Edu4rdSHL/findomain/releases/latest/download/findomain-linux.zip && unzip findomain-linux.zip && sudo mv findomain /usr/local/bin/",
@@ -299,13 +298,19 @@ def cli(
             "linux": "git clone https://github.com/internetwache/GitTools.git",
             "windows": "Use WSL or follow README for Windows setup",
             "note": "GitTools is a suite for .git repo extraction."
+        },
+        "jhaddix": {
+            "linux": "wget https://raw.githubusercontent.com/jhaddix/content-discovery-wordlists/master/raft-large-words.txt -O wordlists/jhaddix_content_discovery.txt",
+            "windows": "wget https://raw.githubusercontent.com/jhaddix/content-discovery-wordlists/master/raft-large-words.txt -O wordlists/jhaddix_content_discovery.txt",
+            "note": "This is a wordlist, not a binary. Used for content discovery."
         }
     }
+    # Only check tools once, after all user selections
+    missing_tools = check_tools(selected_tasks, tasks_config, tools_config)
     if missing_tools:
-        console.print("[red]The following required tool(s) are missing. Please install them manually before proceeding.\n")
+        console.print("[red]The following required tool(s) or wordlist(s) are missing. Please install or download them manually before proceeding.\n")
         for tool, install_cmd in missing_tools.items():
             console.print(f"[bold]{tool}[/bold]")
-            # Check if tool is in extra_tool_info
             if tool in extra_tool_info:
                 info = extra_tool_info[tool]
                 console.print(f"  [yellow]Linux install:[/yellow] {info['linux']}")
@@ -313,7 +318,6 @@ def cli(
                 console.print(f"  [blue]Note:[/blue] {info['note']}")
             else:
                 console.print(f"  [yellow]Linux install:[/yellow] {install_cmd}")
-                # Suggest a Windows install if possible, else generic message
                 extra_info = None
                 if install_cmd.startswith("pip install"):
                     win_cmd = install_cmd.replace("sudo ", "")
@@ -332,7 +336,7 @@ def cli(
                     console.print(f"  [yellow]Windows install:[/yellow] Please refer to the tool's documentation.")
                 if extra_info:
                     console.print(f"  [blue]Note:[/blue] {extra_info}")
-        console.print("\n[red]Exiting. All required tools must be installed manually and available in your PATH.")
+        console.print("\n[red]Exiting. All required tools and wordlists must be installed/downloaded and available in your PATH or wordlists folder.")
         raise typer.Exit(1)
 
     # 5. Execution mode
