@@ -74,7 +74,37 @@ PROFILES = {
 }
 
 
-def cli(
+# Remove the @app.command() for cli and make it the root command
+@app.callback()
+def main_callback():
+    print_logo()
+    first_run_personalization()
+
+@app.command()
+def config(
+    action: str = typer.Argument(..., help="Action: set/show"),
+    config_type: str = typer.Argument(..., help="Config type: wordlist/payload"),
+    tool: str = typer.Argument(None, help="Tool name (for set)"),
+    path: str = typer.Argument(None, help="File path (for set)")
+):
+    """Edit or show wordlist/payload config from CLI."""
+    if action == "set":
+        if not tool or not path:
+            console.print("[red]Usage: cyfer-recon config set wordlist ffuf wordlists/custom.txt")
+            raise typer.Exit(1)
+        if config_type == "wordlist":
+            cli_config.set_wordlist(tool, path)
+        elif config_type == "payload":
+            cli_config.set_payload(tool, path)
+        else:
+            console.print("[red]Unknown config type.")
+    elif action == "show":
+        cli_config.show_config(config_type)
+    else:
+        console.print("[red]Unknown action. Use set/show.")
+
+# Make the recon flow the root command
+def main_recon(
     targets: str = typer.Option(None, help="Comma-separated targets or path to file."),
     setup_tools: bool = typer.Option(False, help="Automatically download and setup missing tools globally."),
     skip_live_check: bool = typer.Option(False, help="Skip live subdomain check after deduplication."),
@@ -251,33 +281,28 @@ def cli(
             f.write(f"- {line}\n")
     console.print(Panel(f"[bold green]Recon complete! Summary saved to {report_path}[/bold green]", expand=False))
 
-@app.callback()
-def main_callback():
-    first_run_personalization()
+CYFER_TRACE_LOGO = '''
+[bold cyan]
+   ██████╗██╗   ██╗███████╗███████╗██████╗     ████████╗██████╗  █████╗  ██████╗███████╗
+  ██╔════╝╚██╗ ██╔╝██╔════╝██╔════╝██╔══██╗    ╚══██╔══╝██╔══██╗██╔══██╗██╔════╝██╔════╝
+  ██║      ╚████╔╝ █████╗  █████╗  ██████╔╝       ██║   ██████╔╝███████║██║     █████╗  
+  ██║       ╚██╔╝  ██╔══╝  ██╔══╝  ██╔══██╗       ██║   ██╔══██╗██╔══██║██║     ██╔══╝  
+  ╚██████╗   ██║   ██║     ███████╗██║  ██║       ██║   ██║  ██║██║  ██║╚██████╗███████╗
+   ╚═════╝   ╚═╝   ╚═╝     ╚══════╝╚═╝  ╚═╝       ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚══════╝
+[/bold cyan]
+'''
 
-@app.command()
-def config(
-    action: str = typer.Argument(..., help="Action: set/show"),
-    config_type: str = typer.Argument(..., help="Config type: wordlist/payload"),
-    tool: str = typer.Argument(None, help="Tool name (for set)"),
-    path: str = typer.Argument(None, help="File path (for set)")
-):
-    """Edit or show wordlist/payload config from CLI."""
-    if action == "set":
-        if not tool or not path:
-            console.print("[red]Usage: cyfer-recon config set wordlist ffuf wordlists/custom.txt")
-            raise typer.Exit(1)
-        if config_type == "wordlist":
-            cli_config.set_wordlist(tool, path)
-        elif config_type == "payload":
-            cli_config.set_payload(tool, path)
-        else:
-            console.print("[red]Unknown config type.")
-    elif action == "show":
-        cli_config.show_config(config_type)
-    else:
-        console.print("[red]Unknown action. Use set/show.")
+def print_logo():
+    console.print(Panel(CYFER_TRACE_LOGO, style="bold cyan", expand=False))
+
+# Register the main recon CLI as the default command
+@app.callback(invoke_without_command=True)
+def main_callback(ctx: typer.Context):
+    print_logo()
+    first_run_personalization()
+    if ctx.invoked_subcommand is None:
+        # No subcommand provided, launch main recon CLI
+        main_recon()
 
 def main():
-    app.command()(cli)
     app()
