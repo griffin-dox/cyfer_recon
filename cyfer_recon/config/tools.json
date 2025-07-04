@@ -5,7 +5,7 @@
   },
   "amass": {
     "check": "amass",
-    "install": "Kali: sudo apt-get update && sudo apt-get install -y amass; Windows: winget install --id=OWASP.Amass -e"
+    "install": "Kali: sudo apt install -y amass; Windows: go install -v github.com/owasp-amass/amass/v4/...@master"
   },
   "assetfinder": {
     "check": "assetfinder",
@@ -29,7 +29,7 @@
   },
   "gobuster": {
     "check": "gobuster",
-    "install": "Kali: sudo apt-get install -y gobuster; Windows: Download the Windows release from gobuster releases or build with Go"
+    "install": "Kali: sudo apt install -y gobuster; Windows: go install github.com/OJ/gobuster/v3@latest"
   },
   "linkfinder": {
     "check": "linkfinder",
@@ -88,12 +88,12 @@
     "install": "Kali: go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest; Windows: go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest"
   },
   "kiterunner": {
-    "check": "kiterunner",
-    "install": "Kali: go install github.com/assetnote/kiterunner@latest; Windows: go install github.com/assetnote/kiterunner@latest"
+    "check": "kr",
+    "install": "Kali: go install github.com/assetnote/kiterunner/cmd/kr@latest; Windows: go install github.com/assetnote/kiterunner/cmd/kr@latest"
   },
   "jhaddix": {
     "check": "file:wordlists/jhaddix_content_discovery.txt",
-    "install": "Kali/Windows: wget https://raw.githubusercontent.com/jhaddix/content-discovery-wordlists/master/raft-large-words.txt -O wordlists/jhaddix_content_discovery.txt"
+    "install": "Kali/Windows: wget -O wordlists/jhaddix_content_discovery.txt https://raw.githubusercontent.com/danielmiessler/SecLists/master/Discovery/Web-Content/raft-large-directories.txt"
   },
   "waybackurls": {
     "check": "waybackurls",
