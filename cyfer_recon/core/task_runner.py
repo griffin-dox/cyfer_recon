@@ -39,12 +39,16 @@ def run_task_for_target(target: str, task: str, commands: List[str], output_dir:
     for idx, cmd in enumerate(commands):
         tool, ext = get_tool_and_ext(cmd)
         result_file = os.path.join(task_dir, f"{tool}_{task.replace(' ', '_').lower()}_{idx+1}{ext}")
+        # Ensure the output directory exists for redirected files
+        os.makedirs(os.path.dirname(result_file), exist_ok=True)
         cmd_fmt = cmd.replace('{target}', target).replace('{output}', task_dir)
         def output_repl(m):
             return m.group(1) + result_file
         cmd_fmt = re.sub(r'(-o(?:N|G)?\s+)[^\s]+', output_repl, cmd_fmt)
         if '>' in cmd_fmt:
-            cmd_fmt = re.sub(r'>\s*[^\s]+', f'> "{result_file}"', cmd_fmt)
+            def redir_repl(match):
+                return f'> "{result_file}"'
+            cmd_fmt = re.sub(r'>\s*[^\s]+', redir_repl, cmd_fmt)
         # log_file = os.path.join(logs_dir, f"{task.replace(' ', '_').lower()}.log")
         bar_task_id = None
         if progress is not None:
@@ -102,22 +106,24 @@ def run_task_for_target(target: str, task: str, commands: List[str], output_dir:
         for fc in failed_cmds:
             console.print(f"[red]  Tool: {fc['tool']} | Exit code: {fc['exit_code']} | Error: {fc['stderr'].strip().splitlines()[-1] if fc['stderr'].strip() else 'No stderr output.'}")
 
-def run_tasks(targets: List[str], selected_tasks: List[str], tasks_config: Dict[str, Any], output_dir: str, concurrent: bool, console: Any, wordlists: list = None, payloads: list = None) -> None:
+def run_tasks(targets: List[str], selected_tasks: List[str], tasks_config: Dict[str, Any], output_dir: str, concurrent: bool, console: Any, wordlists: dict = None, payloads: dict = None) -> None:
     """
     Run all selected tasks for all targets, concurrently or sequentially, with progress bars.
-    For commands with {wordlist} or {payload}, run once per wordlist/payload.
+    For commands with {wordlist} or {payload}, use the config-driven wordlist/payload for the tool.
     """
     if wordlists is None:
-        wordlists = []
+        wordlists = {}
     if payloads is None:
-        payloads = []
+        payloads = {}
     jobs = []
     for target in targets:
         for task in selected_tasks:
             commands = tasks_config.get(task, [])
             for cmd in commands:
-                if "{wordlist}" in cmd and wordlists:
-                    for wordlist in wordlists:
+                if "{wordlist}" in cmd:
+                    tool = cmd.split()[0]
+                    wordlist = wordlists.get(tool)
+                    if wordlist:
                         wl_name = os.path.splitext(os.path.basename(wordlist))[0]
                         cmd_wl = cmd.replace("{wordlist}", wordlist)
                         # Add output file suffix for wordlist
@@ -125,8 +131,10 @@ def run_tasks(targets: List[str], selected_tasks: List[str], tasks_config: Dict[
                                         lambda m: f"{m.group(1)}{m.group(2)}{m.group(3)}{output_dir}/{m.group(1)}_{wl_name}.txt",
                                         cmd_wl)
                         jobs.append((target, task, [cmd_wl]))
-                elif "{payload}" in cmd and payloads:
-                    for payload in payloads:
+                elif "{payload}" in cmd:
+                    tool = cmd.split()[0]
+                    payload = payloads.get(tool)
+                    if payload:
                         pl_name = os.path.splitext(os.path.basename(payload))[0]
                         cmd_pl = cmd.replace("{payload}", payload)
                         # Add output file suffix for payload if needed

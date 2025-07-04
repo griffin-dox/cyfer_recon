@@ -1,0 +1,4 @@
+{
+  "ffuf": "payloads/common_payloads.txt",
+  "arjun": "payloads/param_payloads.txt"
+}

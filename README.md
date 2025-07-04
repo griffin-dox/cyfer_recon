@@ -60,19 +60,25 @@ cyfer-recon --targets targets.txt
 
 ---
 
-## 📦 Payloads and Wordlists
+## 📂 Wordlists & Payloads: Config-Driven Selection
 
-- **Payloads:**
-  - Place your custom payload files in the `payloads/` folder in the project root.
-  - You can also select a payload by entering a local file path or a URL (the tool will download and use it).
-  - There is no system-wide payload directory on Linux/Kali; this folder is project-specific.
+Cyfer Recon now uses a config-driven approach for wordlists and payloads:
 
-- **Wordlists:**
-  - On Linux/Kali, the tool will first look in `/usr/share/wordlists/` (the standard system directory).
-  - You can also use a local `wordlists/` folder in the project root.
-  - Additionally, you can select a wordlist by entering a local file path or a URL.
+- **Default wordlists and payloads** for each tool are defined in `config/wordlists.json` and `config/payloads.json`.
+- On first run, you will be prompted to optionally personalize your wordlist and payload choices for each tool. Your choices are saved in `~/.cyfer_recon/wordlists.json` and `~/.cyfer_recon/payloads.json`.
+- When running tasks, the correct wordlist/payload for each tool is automatically selected from your config—no more manual selection menus!
+- You can update your choices at any time using the CLI:
+  ```bash
+  cyfer-recon config set wordlist ffuf wordlists/custom.txt
+  cyfer-recon config set payload arjun payloads/custom_payloads.txt
+  cyfer-recon config show wordlist
+  cyfer-recon config show payload
+  ```
+- If a tool requires a wordlist or payload and none is configured, the CLI will show an error and prompt you to update your config.
 
-When running tasks that require payloads or wordlists, the CLI will prompt you to select from these options.
+**Best Practice:**
+- Place your custom wordlists in the `wordlists/` folder and payloads in the `payloads/` folder, or provide an absolute path.
+- You can always re-run the personalization wizard by deleting your user config files in `~/.cyfer_recon/`.
 
 ---
 

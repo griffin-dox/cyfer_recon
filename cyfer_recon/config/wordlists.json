@@ -1,0 +1,6 @@
+{
+  "ffuf": "wordlists/dirbuster.txt",
+  "gobuster": "wordlists/dirbuster.txt",
+  "arjun": "wordlists/params.txt",
+  "kiterunner": "wordlists/api.txt"
+}

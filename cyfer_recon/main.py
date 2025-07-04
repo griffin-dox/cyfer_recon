@@ -10,6 +10,9 @@ import json
 import os
 import sys
 import glob
+from cyfer_recon.core.personalize import first_run_personalization
+from cyfer_recon.core import cli_config
+from cyfer_recon.core.wordlist_payload_resolver import get_wordlist_for_tool, get_payload_for_tool
 
 app = typer.Typer()
 console = Console()
@@ -140,81 +143,21 @@ def cli(
         console.print("[red]No tasks selected. Exiting.")
         raise typer.Exit(1)
 
-    # 3.5. Wordlist selection (for tasks that use {wordlist})
-    wordlist_tasks = [task for task in selected_tasks if any("{wordlist}" in cmd for cmd in tasks_config[task])]
-    wordlists = []
-    if wordlist_tasks:
-        wordlists = []
-        wordlist_menu_choices = []
-        # 1. List from default dir
-        default_wordlist_dir = "/usr/share/wordlists/"
-        if os.path.isdir(default_wordlist_dir):
-            import glob
-            found_wordlists = glob.glob(os.path.join(default_wordlist_dir, "**", "*.txt"), recursive=True)
-            wordlist_menu_choices += [f"[Folder] {os.path.relpath(w, default_wordlist_dir)}" for w in found_wordlists]
-        # 2. List from local wordlists/ folder
-        from cyfer_recon.core.utils import list_files_in_folder, download_file, validate_local_file
-        local_wordlist_dir = os.path.join(os.getcwd(), "wordlists")
-        local_wordlists = list_files_in_folder(local_wordlist_dir, extensions=[".txt", ".lst", ".wordlist"])
-        wordlist_menu_choices += [f"[Local] {os.path.basename(w)}" for w in local_wordlists]
-        # 3. Add custom path/URL option
-        wordlist_menu_choices += ["[Custom] Enter local file path", "[Custom] Enter URL"]
-        selected = questionary.checkbox(
-            "Select wordlists to use:",
-            choices=wordlist_menu_choices
-        ).ask()
-        for sel in selected:
-            if sel.startswith("[Folder]"):
-                wordlists.append(os.path.join(default_wordlist_dir, sel.replace("[Folder] ", "")))
-            elif sel.startswith("[Local]"):
-                wordlists.append(os.path.join(local_wordlist_dir, sel.replace("[Local] ", "")))
-            elif sel == "[Custom] Enter local file path":
-                path = questionary.path("Enter path to a wordlist:").ask()
-                if validate_local_file(path):
-                    wordlists.append(path)
-                else:
-                    console.print(f"[red]File not found or not readable: {path}")
-            elif sel == "[Custom] Enter URL":
-                url = questionary.text("Enter URL to a wordlist:").ask()
-                try:
-                    tmp_path = download_file(url)
-                    wordlists.append(tmp_path)
-                except Exception as e:
-                    console.print(f"[red]Failed to download: {e}")
-    else:
-        wordlists = []
-
-    # 3.6. Payload selection (for tasks that use {payload})
-    payload_tasks = [task for task in selected_tasks if any("{payload}" in cmd for cmd in tasks_config[task])]
-    payloads = []
-    if payload_tasks:
-        payload_menu_choices = []
-        payload_folder = os.path.join(os.getcwd(), "payloads")
-        payload_files = list_files_in_folder(payload_folder)
-        payload_menu_choices += [f"[Payloads] {os.path.basename(p)}" for p in payload_files]
-        payload_menu_choices += ["[Custom] Enter local file path", "[Custom] Enter URL"]
-        selected = questionary.checkbox(
-            "Select payloads to use:",
-            choices=payload_menu_choices
-        ).ask()
-        for sel in selected:
-            if sel.startswith("[Payloads]"):
-                payloads.append(os.path.join(payload_folder, sel.replace("[Payloads] ", "")))
-            elif sel == "[Custom] Enter local file path":
-                path = questionary.path("Enter path to a payload:").ask()
-                if validate_local_file(path):
-                    payloads.append(path)
-                else:
-                    console.print(f"[red]File not found or not readable: {path}")
-            elif sel == "[Custom] Enter URL":
-                url = questionary.text("Enter URL to a payload:").ask()
-                try:
-                    tmp_path = download_file(url)
-                    payloads.append(tmp_path)
-                except Exception as e:
-                    console.print(f"[red]Failed to download: {e}")
-    else:
-        payloads = []
+    # 3.5. Wordlist and payload resolution (config-driven, no menu)
+    wordlists = {}
+    payloads = {}
+    for task in selected_tasks:
+        for cmd in tasks_config[task]:
+            if "{wordlist}" in cmd:
+                tool = cmd.split()[0]
+                wl = get_wordlist_for_tool(tool)
+                if wl:
+                    wordlists[tool] = wl
+            if "{payload}" in cmd:
+                tool = cmd.split()[0]
+                pl = get_payload_for_tool(tool)
+                if pl:
+                    payloads[tool] = pl
 
     # 4. Tool check (single, clear block)
     # Use install info from tools_config
@@ -307,6 +250,33 @@ def cli(
         for line in summary:
             f.write(f"- {line}\n")
     console.print(Panel(f"[bold green]Recon complete! Summary saved to {report_path}[/bold green]", expand=False))
+
+@app.callback()
+def main_callback():
+    first_run_personalization()
+
+@app.command()
+def config(
+    action: str = typer.Argument(..., help="Action: set/show"),
+    config_type: str = typer.Argument(..., help="Config type: wordlist/payload"),
+    tool: str = typer.Argument(None, help="Tool name (for set)"),
+    path: str = typer.Argument(None, help="File path (for set)")
+):
+    """Edit or show wordlist/payload config from CLI."""
+    if action == "set":
+        if not tool or not path:
+            console.print("[red]Usage: cyfer-recon config set wordlist ffuf wordlists/custom.txt")
+            raise typer.Exit(1)
+        if config_type == "wordlist":
+            cli_config.set_wordlist(tool, path)
+        elif config_type == "payload":
+            cli_config.set_payload(tool, path)
+        else:
+            console.print("[red]Unknown config type.")
+    elif action == "show":
+        cli_config.show_config(config_type)
+    else:
+        console.print("[red]Unknown action. Use set/show.")
 
 def main():
     app.command()(cli)
