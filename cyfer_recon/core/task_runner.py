@@ -106,10 +106,11 @@ def run_task_for_target(target: str, task: str, commands: List[str], output_dir:
         for fc in failed_cmds:
             console.print(f"[red]  Tool: {fc['tool']} | Exit code: {fc['exit_code']} | Error: {fc['stderr'].strip().splitlines()[-1] if fc['stderr'].strip() else 'No stderr output.'}")
 
-def run_tasks(targets: List[str], selected_tasks: List[str], tasks_config: Dict[str, Any], output_dir: str, concurrent: bool, console: Any, wordlists: dict = None) -> None:
+def run_tasks(targets: List[str], selected_tasks: List[str], tasks_config: Dict[str, Any], output_dir: str, concurrent: bool, console: Any, wordlists: dict = None, dry_run: bool = False) -> None:
     """
     Run all selected tasks for all targets, concurrently or sequentially, with progress bars.
     For commands with {wordlist}, use the tool-specific wordlist from the mapping.
+    If dry_run is True, print commands instead of executing them.
     """
     if wordlists is None:
         wordlists = {}
@@ -131,6 +132,12 @@ def run_tasks(targets: List[str], selected_tasks: List[str], tasks_config: Dict[
                         jobs.append((target, task, [cmd_wl]))
                 else:
                     jobs.append((target, task, [cmd]))
+    if dry_run:
+        console.print("[yellow]Dry run mode: The following commands would be executed:")
+        for t, task, cmds in jobs:
+            for cmd in cmds:
+                console.print(f"[cyan]{task}[/cyan] for [green]{t}[/green]: [white]{cmd}[/white]")
+        return
     progress_columns = [
         SpinnerColumn(),
         TextColumn("{task.description}", justify="right"),

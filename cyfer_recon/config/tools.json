@@ -189,7 +189,7 @@
   },
   "googler": {
     "check": "googler",
-    "install": "Kali: sudo apt-get install -y googler; Windows: pip install googler or use WSL for best results"
+    "install": "Kali: cd /tmp && git clone https://github.com/jarun/googler.git && cd googler && sudo make install; Windows: pip install googler or use WSL for best results"
   },
   "github-dork": {
     "check": "github-dork",
@@ -205,7 +205,7 @@
   },
   "subzy": {
     "check": "subzy",
-    "install": "Kali: go install -v github.com/LukaSikic/subzy@latest; Windows: go install -v github.com/LukaSikic/subzy@latest"
+    "install": "Kali: go install -v github.com/PentestPad/subzy@latest; Windows: go install -v github.com/PentestPad/subzy@latest"
   },
   "corsy": {
     "check": "corsy",
