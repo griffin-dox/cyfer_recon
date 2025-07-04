@@ -106,15 +106,13 @@ def run_task_for_target(target: str, task: str, commands: List[str], output_dir:
         for fc in failed_cmds:
             console.print(f"[red]  Tool: {fc['tool']} | Exit code: {fc['exit_code']} | Error: {fc['stderr'].strip().splitlines()[-1] if fc['stderr'].strip() else 'No stderr output.'}")
 
-def run_tasks(targets: List[str], selected_tasks: List[str], tasks_config: Dict[str, Any], output_dir: str, concurrent: bool, console: Any, wordlists: dict = None, payloads: dict = None) -> None:
+def run_tasks(targets: List[str], selected_tasks: List[str], tasks_config: Dict[str, Any], output_dir: str, concurrent: bool, console: Any, wordlists: dict = None) -> None:
     """
     Run all selected tasks for all targets, concurrently or sequentially, with progress bars.
-    For commands with {wordlist} or {payload}, use the config-driven wordlist/payload for the tool.
+    For commands with {wordlist}, use the tool-specific wordlist from the mapping.
     """
     if wordlists is None:
         wordlists = {}
-    if payloads is None:
-        payloads = {}
     jobs = []
     for target in targets:
         for task in selected_tasks:
@@ -131,17 +129,6 @@ def run_tasks(targets: List[str], selected_tasks: List[str], tasks_config: Dict[
                                         lambda m: f"{m.group(1)}{m.group(2)}{m.group(3)}{output_dir}/{m.group(1)}_{wl_name}.txt",
                                         cmd_wl)
                         jobs.append((target, task, [cmd_wl]))
-                elif "{payload}" in cmd:
-                    tool = cmd.split()[0]
-                    payload = payloads.get(tool)
-                    if payload:
-                        pl_name = os.path.splitext(os.path.basename(payload))[0]
-                        cmd_pl = cmd.replace("{payload}", payload)
-                        # Add output file suffix for payload if needed
-                        cmd_pl = re.sub(r'(ffuf|gobuster|kiterunner)([^>]*)(-o\s*|>\s*)([^\s]+)',
-                                        lambda m: f"{m.group(1)}{m.group(2)}{m.group(3)}{output_dir}/{m.group(1)}_{pl_name}.txt",
-                                        cmd_pl)
-                        jobs.append((target, task, [cmd_pl]))
                 else:
                     jobs.append((target, task, [cmd]))
     progress_columns = [
