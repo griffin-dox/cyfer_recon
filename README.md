@@ -60,6 +60,25 @@ cyfer-recon --targets targets.txt
 
 ---
 
+## 🚀 Preset System
+
+Cyfer Recon supports a powerful preset system for rapid, repeatable recon workflows:
+
+- **Presets** are defined in `config/presets.json` and include built-in (Quick Recon, Full Recon, API Recon) and custom user-defined sets.
+- **Descriptions** and (optionally) tags help you choose the right preset for your engagement.
+- **Custom Presets:** Create, edit, or delete your own presets interactively via the CLI (`cyfer-recon preset-edit`).
+- **CLI Flag:** Run a preset directly with `--preset "Preset Name"`.
+- **Validation:** The CLI will warn if a preset references missing tasks.
+
+### Example Presets
+- **Quick Recon:** Fast, minimal recon for quick results.
+- **Full Recon:** Comprehensive recon using all available modules.
+- **API Recon:** Recon focused on APIs, endpoints, secrets, and code leaks.
+
+You can add your own presets for cloud, DNS, bug bounty, or internal pentest scenarios.
+
+---
+
 ## 📂 Wordlists & Payloads: Config-Driven Selection
 
 Cyfer Recon now uses a config-driven approach for wordlists and payloads:
@@ -82,13 +101,13 @@ Cyfer Recon now uses a config-driven approach for wordlists and payloads:
 
 ---
 
-## 🛠️ Supported Recon Tasks
+## 🧩 Supported Recon Tasks (Expanded)
 
-- Subdomain Enumeration (subfinder, amass, assetfinder, findomain, dnsx)
+- Subdomain Enumeration & Takeover Detection (subfinder, amass, assetfinder, findomain, dnsx, subjack, subzy)
 - Port Scanning (masscan, nmap)
 - Screenshot Capture (eyewitness, aquatone, gowitness)
-- Directory Brute Forcing (ffuf, gobuster, HTTPS support)
-- JavaScript Analysis (linkfinder, gf, jsfinder, SecretFinder)
+- Directory Brute Forcing (ffuf, gobuster)
+- JavaScript Analysis & Secret Discovery (linkfinder, gf, jsfinder, SecretFinder, trufflehog, gitleaks)
 - Parameter Discovery (pamspider, arjun, paramspider)
 - XSS Detection (dlox, xsstrike, dalfox, kxss)
 - SQL Injection Testing (sqlmap)
@@ -96,16 +115,24 @@ Cyfer Recon now uses a config-driven approach for wordlists and payloads:
 - LFI/RFI Detection (lfi-suite, fimap, liffy)
 - Open Redirect Detection (oralizer, ffuf)
 - Security Headers Check (nikto, httpx, testssl.sh)
-- API Recon (kiterunner, apkleaks)
+- API Recon (kiterunner, apkleaks, nuclei, dalfox, arjun, httpx)
 - Content Discovery (jhaddix, waybackurls, gau)
 - S3 Bucket Enumeration (awsbucketdump, s3scanner)
+- Cloud Asset Enumeration (cloud_enum, scout suite)
+- DNS Recon (dnsrecon, dnsenum, massdns)
+- Virtual Host Discovery (vhostscan)
+- Web Tech Fingerprinting (whatweb, wappalyzer)
+- Favicon Hashing (favfreak)
+- Vulnerability Scanning (nuclei, jaeles)
+- Google Dorking (googler)
+- GitHub Dorking (github-dork)
 - CMS Enumeration (cmseek, wpscan)
 - WAF Detection (wafw00f)
 - Information Disclosure (gitdumper, gittools)
 - Reverse Shell Generation (msfvenom)
 - Mass Exploitation (metasploit)
 
-See `config/tasks.json` for full command mapping.
+See `config/tasks.json` for the full, up-to-date list.
 
 ---
 

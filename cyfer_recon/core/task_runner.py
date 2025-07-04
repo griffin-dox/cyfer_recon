@@ -111,6 +111,19 @@ def run_tasks(targets: List[str], selected_tasks: List[str], tasks_config: Dict[
     Run all selected tasks for all targets, concurrently or sequentially, with progress bars.
     For commands with {wordlist}, use the tool-specific wordlist from the mapping.
     If dry_run is True, print commands instead of executing them.
+
+    Args:
+        targets (List[str]): List of target domains/hosts.
+        selected_tasks (List[str]): List of task names to run.
+        tasks_config (Dict[str, Any]): Task configuration dictionary.
+        output_dir (str): Output directory for results.
+        concurrent (bool): Whether to run tasks concurrently.
+        console (Any): Rich console for output.
+        wordlists (dict, optional): Mapping of tool name to wordlist path. Defaults to None.
+        dry_run (bool, optional): If True, print commands instead of running. Defaults to False.
+
+    Returns:
+        None
     """
     if wordlists is None:
         wordlists = {}
