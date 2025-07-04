@@ -59,9 +59,21 @@
     "httpx -u http://{target} -sc -title -server -o {output}/headers.txt",
     "testssl.sh http://{target} > {output}/testssl.txt"
   ],
+  "Automated Google Dorking": [
+    "googler --count 20 \"site:{target} inurl:admin\" > {output}/dorking/admin_panels.txt",
+    "googler --count 20 \"site:{target} ext:sql | ext:db | ext:bak\" > {output}/dorking/db_backups.txt",
+    "googler --count 20 \"site:{target} intitle:index.of\" > {output}/dorking/index_of.txt"
+  ],
+  "Automated GitHub Dorking": [
+    "github-dork -q {target} -t $GITHUB_TOKEN -o {output}/github_dorks.txt"
+  ],
   "Automated API Recon": [
     "kiterunner -u https://{target}/api -w {wordlist}",
-    "apkleaks -f {target}.apk -o {output}/apkleaks.txt"
+    "apkleaks -f {target}.apk -o {output}/apkleaks.txt",
+    "nuclei -u https://{target}/api -t cves/ -o {output}/api/nuclei.txt",
+    "dalfox url https://{target}/api --output {output}/api/dalfox.txt",
+    "arjun -u https://{target}/api -w {wordlist} -o {output}/api/arjun.txt",
+    "httpx -u https://{target}/api -title -status-code -tech-detect -o {output}/api/httpx.txt"
   ],
   "Automated Content Discovery": [
     "jhaddix -d {target} -o {output}/urls.txt",
@@ -71,5 +83,38 @@
   "Automated S3 Bucket Enumeration": [
     "awsbucketdump -t {target}",
     "s3scanner scan -b {target} -o {output}/s3scanner.txt"
+  ],
+  "Automated Subdomain Takeover Detection": [
+    "subjack -w {output}/subdomains/subfinder.txt -t 100 -timeout 30 -ssl -c /path/to/fingerprints.json -o {output}/subdomains/subjack.txt",
+    "subzy run --targets {output}/subdomains/subfinder.txt --output {output}/subdomains/subzy.txt"
+  ],
+  "Automated CORS Misconfiguration Scan": [
+    "corsy -u https://{target} -o {output}/corsy.txt"
+  ],
+  "Automated Cloud Asset Enumeration": [
+    "cloud_enum -k API_KEY -t {target} -o {output}/cloud/cloud_enum.txt",
+    "scout suite -r aws -a {target} -o {output}/cloud/scoutsuite/"
+  ],
+  "Automated DNS Recon": [
+    "dnsrecon -d {target} -a -t axfr -j {output}/dns/dnsrecon.json",
+    "dnsenum {target} > {output}/dns/dnsenum.txt",
+    "massdns -r resolvers.txt -t A -o S -w {output}/dns/massdns.txt {target}"
+  ],
+  "Automated Virtual Host Discovery": [
+    "vhostscan -t {target} -o {output}/vhosts/vhostscan.txt"
+  ],
+  "Automated Web Tech Fingerprinting": [
+    "whatweb -v {target} > {output}/tech/whatweb.txt",
+    "wappalyzer -u https://{target} -o {output}/tech/wappalyzer.json"
+  ],
+  "Automated Favicon Hashing": [
+    "favfreak -u https://{target} -o {output}/favicons/favfreak.txt"
+  ],
+  "Automated Secret/Token Discovery": [
+    "trufflehog filesystem --directory {output}/js/ --json > {output}/js/trufflehog.json",
+    "gitleaks detect --source {output}/github_dorks.txt --report-path {output}/github/gitleaks.json"
+  ],
+  "Automated Vulnerability Scanning": [
+    "jaeles scan -u https://{target} -o {output}/vuln/jaeles.txt"
   ]
 }

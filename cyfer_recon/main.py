@@ -24,6 +24,7 @@ console = Console()
 CONFIG_DIR = os.path.join(os.path.dirname(__file__), 'config')
 TASKS_FILE = os.path.join(CONFIG_DIR, 'tasks.json')
 TOOLS_FILE = os.path.join(CONFIG_DIR, 'tools.json')
+PRESETS_FILE = os.path.join(CONFIG_DIR, 'presets.json')
 
 
 def load_json(path):
@@ -70,6 +71,17 @@ def sanitize_shell_arg(arg: str) -> str:
     return arg.replace(';', '').replace('&', '').replace('|', '').replace('`', '').replace('$(', '').replace(')', '')
 
 
+# Utility: Preset management
+def load_presets():
+    if not os.path.isfile(PRESETS_FILE):
+        return {}
+    with open(PRESETS_FILE, 'r', encoding='utf-8') as f:
+        return json.load(f)
+
+def save_presets(presets):
+    with open(PRESETS_FILE, 'w', encoding='utf-8') as f:
+        json.dump(presets, f, indent=2)
+
 @app.command()
 def version():
     """Show version information."""
@@ -99,6 +111,7 @@ def cli(
     live_check_tool: str = typer.Option('httpx', help="Tool to use for live subdomain check: httpx or dnsx."),
     debug: bool = typer.Option(False, help="Enable debug logging."),
     dry_run: bool = typer.Option(False, help="Show what would be run, but do not execute commands."),
+    preset: str = typer.Option(None, help="Run a specific preset by name (bypass menu)."),
 ):
     if debug:
         logging.basicConfig(level=logging.DEBUG)
@@ -142,14 +155,59 @@ def cli(
     tasks_config = validate_json_config(TASKS_FILE)
     tools_config = validate_json_config(TOOLS_FILE)
     task_names = list(tasks_config.keys())
-
-    # 3. Task selection
-    selected_tasks = questionary.checkbox(
-        "Select recon tasks to run:", choices=task_names
-    ).ask()
-    if not selected_tasks:
-        console.print("[red]No tasks selected. Exiting.")
-        raise typer.Exit(1)
+    presets = load_presets()
+    # Validate and sort presets
+    valid_presets = {}
+    for name, data in presets.items():
+        valid_tasks = [t for t in data["tasks"] if t in task_names]
+        if len(valid_tasks) != len(data["tasks"]):
+            console.print(f"[yellow]Warning: Some tasks in preset '{name}' do not exist and will be ignored.")
+        valid_presets[name] = {"tasks": valid_tasks, "description": data.get("description", "")}
+    save_presets(valid_presets)
+    presets = valid_presets
+    # Preset selection logic
+    if preset and preset in presets:
+        selected_tasks = presets[preset]["tasks"]
+        console.print(f"[green]Preset '{preset}' selected via CLI. Tasks: {', '.join(selected_tasks)}")
+    else:
+        # Group built-in and custom presets
+        builtin = [k for k in presets if k in ("Quick Recon", "Full Recon", "API Recon")]
+        custom = sorted([k for k in presets if k not in builtin])
+        preset_names = [f"{k} - {presets[k]['description']}" if presets[k]['description'] else k for k in builtin + custom] + ["Custom Preset", "Custom (One-off)"]
+        preset_map = {f"{k} - {presets[k]['description']}" if presets[k]['description'] else k: k for k in builtin + custom}
+        preset_choice = questionary.select(
+            "Choose a recon preset:", choices=preset_names
+        ).ask()
+        selected_tasks = []
+        if preset_choice in preset_map:
+            preset_key = preset_map[preset_choice]
+            selected_tasks = presets[preset_key]["tasks"]
+            console.print(f"[green]Preset '{preset_key}' selected. Tasks: {', '.join(selected_tasks)}")
+        elif preset_choice == "Custom Preset":
+            # User creates a new preset
+            custom_tasks = questionary.checkbox(
+                "Select tasks for your custom preset:", choices=task_names
+            ).ask()
+            if not custom_tasks:
+                console.print("[red]No tasks selected. Exiting.")
+                raise typer.Exit(1)
+            preset_name = questionary.text("Enter a name for this preset:").ask()
+            if not preset_name:
+                console.print("[red]No preset name provided. Exiting.")
+                raise typer.Exit(1)
+            desc = questionary.text("Enter a description for this preset (optional):").ask()
+            presets[preset_name] = {"tasks": custom_tasks, "description": desc}
+            save_presets(presets)
+            console.print(f"[green]Preset '{preset_name}' saved!")
+            selected_tasks = custom_tasks
+        else:
+            # Custom (One-off)
+            selected_tasks = questionary.checkbox(
+                "Select recon tasks to run:", choices=task_names
+            ).ask()
+            if not selected_tasks:
+                console.print("[red]No tasks selected. Exiting.")
+                raise typer.Exit(1)
 
     # 3.5. Wordlist selection (for tasks that use {wordlist})
     wordlist_tasks = [task for task in selected_tasks if any("{wordlist}" in cmd for cmd in tasks_config[task])]
@@ -301,6 +359,43 @@ def command_edit():
     with open(tasks_path, 'w', encoding='utf-8') as f:
         json.dump(tasks, f, indent=2)
     console.print(f"[green]Commands for {task} updated!")
+
+@app.command()
+def preset_edit():
+    """Edit or delete custom presets and their descriptions."""
+    presets = load_presets()
+    if not presets:
+        console.print("[red]No presets found.")
+        return
+    preset_names = list(presets.keys())
+    preset = questionary.select("Select a preset to edit/delete:", choices=preset_names).ask()
+    if not preset:
+        return
+    action = questionary.select("Edit or delete this preset?", choices=["Edit", "Delete", "Cancel"]).ask()
+    if action == "Edit":
+        # Edit tasks
+        tasks_config = validate_json_config(TASKS_FILE)
+        task_names = list(tasks_config.keys())
+        current_tasks = presets[preset]["tasks"]
+        new_tasks = questionary.checkbox(
+            f"Edit tasks for {preset}:", choices=task_names, default=current_tasks
+        ).ask()
+        # Edit description
+        new_desc = questionary.text(
+            f"Edit description for {preset}:", default=presets[preset].get("description", "")
+        ).ask()
+        presets[preset]["tasks"] = new_tasks
+        presets[preset]["description"] = new_desc
+        save_presets(presets)
+        console.print(f"[green]Preset '{preset}' updated!")
+    elif action == "Delete":
+        confirm = questionary.confirm(f"Are you sure you want to delete preset '{preset}'?", default=False).ask()
+        if confirm:
+            presets.pop(preset)
+            save_presets(presets)
+            console.print(f"[green]Preset '{preset}' deleted!")
+    else:
+        return
 
 @app.command("help")
 def help_menu():

@@ -186,5 +186,77 @@
   "gittools": {
     "check": "extractor.sh",
     "install": "Kali: git clone https://github.com/internetwache/GitTools.git; Windows: git clone https://github.com/internetwache/GitTools.git"
+  },
+  "googler": {
+    "check": "googler",
+    "install": "Kali: sudo apt-get install -y googler; Windows: pip install googler or use WSL for best results"
+  },
+  "github-dork": {
+    "check": "github-dork",
+    "install": "Kali: pip install github-dork; Windows: pip install github-dork"
+  },
+  "nuclei": {
+    "check": "nuclei",
+    "install": "Kali: curl -s https://api.github.com/repos/projectdiscovery/nuclei/releases/latest | grep browser_download_url | grep Linux | cut -d '\"' -f 4 | wget -i - && chmod +x nuclei && sudo mv nuclei /usr/local/bin; Windows: Download nuclei.exe from releases and add to PATH"
+  },
+  "subjack": {
+    "check": "subjack",
+    "install": "Kali: go install github.com/haccer/subjack@latest; Windows: go install github.com/haccer/subjack@latest"
+  },
+  "subzy": {
+    "check": "subzy",
+    "install": "Kali: go install -v github.com/LukaSikic/subzy@latest; Windows: go install -v github.com/LukaSikic/subzy@latest"
+  },
+  "corsy": {
+    "check": "corsy",
+    "install": "Kali: pip3 install corsy; Windows: pip3 install corsy"
+  },
+  "cloud_enum": {
+    "check": "cloud_enum.py",
+    "install": "Kali: git clone https://github.com/initstring/cloud_enum.git; Windows: git clone https://github.com/initstring/cloud_enum.git"
+  },
+  "scout suite": {
+    "check": "scout",
+    "install": "Kali: pip3 install scoutsuite; Windows: pip3 install scoutsuite"
+  },
+  "dnsrecon": {
+    "check": "dnsrecon",
+    "install": "Kali: git clone https://github.com/darkoperator/dnsrecon.git; Windows: git clone https://github.com/darkoperator/dnsrecon.git"
+  },
+  "dnsenum": {
+    "check": "dnsenum",
+    "install": "Kali: sudo apt-get install -y dnsenum; Windows: cpan App::dnsenum"
+  },
+  "massdns": {
+    "check": "massdns",
+    "install": "Kali: git clone https://github.com/blechschmidt/massdns.git; Windows: git clone https://github.com/blechschmidt/massdns.git"
+  },
+  "vhostscan": {
+    "check": "vhostscan",
+    "install": "Kali: git clone https://github.com/codingo/VHostScan.git; Windows: git clone https://github.com/codingo/VHostScan.git"
+  },
+  "whatweb": {
+    "check": "whatweb",
+    "install": "Kali: sudo apt-get install -y whatweb; Windows: gem install whatweb"
+  },
+  "wappalyzer": {
+    "check": "wappalyzer",
+    "install": "Kali: npm install -g wappalyzer; Windows: npm install -g wappalyzer"
+  },
+  "favfreak": {
+    "check": "favfreak",
+    "install": "Kali: git clone https://github.com/devanshbatham/FavFreak.git; Windows: git clone https://github.com/devanshbatham/FavFreak.git"
+  },
+  "trufflehog": {
+    "check": "trufflehog",
+    "install": "Kali: pip3 install trufflehog; Windows: pip3 install trufflehog"
+  },
+  "gitleaks": {
+    "check": "gitleaks",
+    "install": "Kali: wget https://github.com/zricethezav/gitleaks/releases/latest/download/gitleaks-linux-amd64 -O /usr/local/bin/gitleaks && chmod +x /usr/local/bin/gitleaks; Windows: Download gitleaks.exe from releases and add to PATH"
+  },
+  "jaeles": {
+    "check": "jaeles",
+    "install": "Kali: go install github.com/jaeles-project/jaeles@latest; Windows: go install github.com/jaeles-project/jaeles@latest"
   }
 }

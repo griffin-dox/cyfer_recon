@@ -1,0 +1,54 @@
+{
+  "Quick Recon": {
+    "tasks": [
+      "Automated Subdomain Enumeration",
+      "Automated Port Scanning",
+      "Automated Google Dorking",
+      "Automated Subdomain Takeover Detection"
+    ],
+    "description": "Fast, minimal recon for quick results."
+  },
+  "Full Recon": {
+    "tasks": [
+      "Automated Subdomain Enumeration",
+      "Automated Port Scanning",
+      "Automating Screenshot Capture",
+      "Automated Directory Brute Forcing",
+      "Automated JavaScript Analysis",
+      "Automated Parameter Discovery",
+      "Automated XSS Detection",
+      "Automated SQL Injection Testing",
+      "Automated SSRF Discovery",
+      "Automated LFI and RFI Detection",
+      "Automated Open Redirect Detection",
+      "Automated Security Headers Check",
+      "Automated Content Discovery",
+      "Automated S3 Bucket Enumeration",
+      "Automated Google Dorking",
+      "Automated GitHub Dorking",
+      "Automated API Recon",
+      "Automated Subdomain Takeover Detection",
+      "Automated CORS Misconfiguration Scan",
+      "Automated Cloud Asset Enumeration",
+      "Automated DNS Recon",
+      "Automated Virtual Host Discovery",
+      "Automated Web Tech Fingerprinting",
+      "Automated Favicon Hashing",
+      "Automated Secret/Token Discovery",
+      "Automated Vulnerability Scanning"
+    ],
+    "description": "Comprehensive recon using all available modules."
+  },
+  "API Recon": {
+    "tasks": [
+      "Automated API Recon",
+      "Automated JavaScript Analysis",
+      "Automated Parameter Discovery",
+      "Automated GitHub Dorking",
+      "Automated CORS Misconfiguration Scan",
+      "Automated Secret/Token Discovery",
+      "Automated Vulnerability Scanning"
+    ],
+    "description": "Recon focused on APIs, endpoints, secrets, and code leaks."
+  }
+}
