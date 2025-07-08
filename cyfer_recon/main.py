@@ -205,7 +205,8 @@ def cli(
             selected_tasks = questionary.checkbox(
                 "Select recon tasks to run:", choices=task_names
             ).ask()
-            if not selected_tasks:
+            console.print(f"[yellow]DEBUG: Selected tasks: {selected_tasks}")
+            if not selected_tasks or not isinstance(selected_tasks, list) or all(not t for t in selected_tasks):
                 console.print("[red]No tasks selected. Exiting.")
                 raise typer.Exit(1)
 
