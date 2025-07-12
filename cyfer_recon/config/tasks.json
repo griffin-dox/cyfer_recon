@@ -1,135 +1,213 @@
 {
-  "Automated Subdomain Enumeration": [
-    "subfinder -d {target} -silent -o {output}/{target}_subfinder.txt",
-    "assetfinder --subs-only {target} | tee {output}/{target}_assetfinder.txt",
-    "amass enum -d {target} -o {output}/{target}_amass.txt",
-    "findomain -t {target} -u {output}/{target}_findomain.txt",
-    "cat {output}/{target}_*.txt | sort -u | dnsx -silent -o {output}/{target}_alive_subs.txt"
-  ],
+  "Automated Subdomain Enumeration": {
+    "run_mode": "both",
+    "commands": [
+      "subfinder -d {target} -silent -o {output}/{target}_subfinder.txt",
+      "assetfinder --subs-only {target} | tee {output}/{target}_assetfinder.txt",
+      "amass enum -d {target} -o {output}/{target}_amass.txt",
+      "findomain -t {target} -u {output}/{target}_findomain.txt",
+      "cat {output}/{target}_*.txt | sort -u | dnsx -silent -o {output}/{target}_alive_subs.txt"
+    ]
+  },
 
-  "Automated Port Scanning": [
-    "rustscan -a {target} --ulimit 5000 -- -Pn -sS -T4 --max-retries 1 -oG {output}/{target}_rustscan.txt",
-    "nmap -p- -sC -sV -Pn -n --open -T4 -oN {output}/{target}_nmap.txt {target}"
-  ],
+  "Automated Port Scanning": {
+    "run_mode": "both",
+    "commands": [
+      "rustscan -a {target} --ulimit 5000 -- -Pn -sS -T4 --max-retries 1 -oG {output}/{target}_rustscan.txt",
+      "nmap -p- -sC -sV -Pn -n --open -T4 -oN {output}/{target}_nmap.txt {target}"
+    ]
+  },
 
-  "Automated Screenshot Capture": [
-    "gowitness file -f {output}/{target}_alive_subs.txt --threads 50 -P {output}/screenshots/{target}/"
-  ],
+  "Automated Screenshot Capture": {
+    "run_mode": "both",
+    "commands": [
+      "gowitness file -f {output}/{target}_alive_subs.txt --threads 50 -P {output}/screenshots/{target}/"
+    ]
+  },
 
-  "Automated Directory Brute Forcing": [
-    "ffuf -w {wordlist} -u https://{target}/FUZZ -mc 200,301,302,403,404 -t 50 -o {output}/ffuf_{target}.json -of json",
-    "feroxbuster -u https://{target} -w {wordlist} -o {output}/ferox_{target}.txt"
-  ],
+  "Automated Directory Brute Forcing": {
+    "run_mode": "both",
+    "commands": [
+      "ffuf -w {wordlist} -u https://{target}/FUZZ -mc 200,301,302,403,404 -t 50 -o {output}/ffuf_{target}.json -of json",
+      "feroxbuster -u https://{target} -w {wordlist} -o {output}/ferox_{target}.txt"
+    ]
+  },
 
-  "Automated JavaScript Analysis": [
-    "katana -u https://{target} -d 5 -jc | grep '\\.js$' | tee {output}/js/alljs.txt",
-    "echo https://{target} | gau | grep '\\.js$' | anew {output}/js/alljs.txt",
-    "cat {output}/js/alljs.txt | uro | sort -u | httpx-toolkit -mc 200 -o {output}/js/live_output.txt",
-    "cat {output}/js/live_output.txt | jsleak -s -l -k > {output}/js/jsleak.txt",
-    "cat {output}/js/live_output.txt | nuclei -t /nuclei-templates/prsnl/credentials-disclosure-all.yaml -c 30 -o {output}/js/nuclei_creds.txt",
-    "cat {output}/js/live_output.txt | nuclei -t /nuclei-templates/http/exposures -c 30 -o {output}/js/nuclei_exposures.txt",
-    "cat {output}/js/live_output.txt | xargs -I{} python3 SecretFinder.py -i \"{}\" -o {output}/js/secretfinder_results/",
-    "cat {output}/js/live_output.txt | xargs -I{} python3 linkfinder.py -i \"{}\" -o {output}/js/linkfinder_results/",
-    "cat {output}/js/live_output.txt | xargs -I{} curl -s \"{}\" | grep -E 'localStorage|sessionStorage' >> {output}/js/local_storage_refs.txt"
-  ],
+  "Automated JavaScript Analysis": {
+    "run_mode": "both",
+    "commands": [
+      "katana -u https://{target} -d 5 -jc | grep '\\.js$' | tee {output}/js/alljs.txt",
+      "echo https://{target} | gau | grep '\\.js$' | anew {output}/js/alljs.txt",
+      "cat {output}/js/alljs.txt | uro | sort -u | httpx-toolkit -mc 200 -o {output}/js/live_output.txt",
+      "cat {output}/js/live_output.txt | jsleak -s -l -k > {output}/js/jsleak.txt",
+      "cat {output}/js/live_output.txt | nuclei -t /nuclei-templates/prsnl/credentials-disclosure-all.yaml -c 30 -o {output}/js/nuclei_creds.txt",
+      "cat {output}/js/live_output.txt | nuclei -t /nuclei-templates/http/exposures -c 30 -o {output}/js/nuclei_exposures.txt",
+      "cat {output}/js/live_output.txt | xargs -I{} python3 SecretFinder.py -i \"{}\" -o {output}/js/secretfinder_results/",
+      "cat {output}/js/live_output.txt | xargs -I{} python3 linkfinder.py -i \"{}\" -o {output}/js/linkfinder_results/",
+      "cat {output}/js/live_output.txt | xargs -I{} curl -s \"{}\" | grep -E 'localStorage|sessionStorage' >> {output}/js/local_storage_refs.txt"
+    ]
+  },
 
-  "Automated Parameter Discovery": [
-    "paramspider --domain {target} --level high --output {output}/params/{target}_params.txt",
-    "arjun -u https://{target} -o {output}/params/{target}_arjun.txt"
-  ],
+  "Automated Parameter Discovery": {
+    "run_mode": "both",
+    "commands": [
+      "paramspider --domain {target} --level high --output {output}/params/{target}_params.txt",
+      "arjun -u https://{target} -o {output}/params/{target}_arjun.txt"
+    ]
+  },
 
-  "Automated XSS Detection": [
-    "dalfox file {output}/params/{target}_params.txt --custom-header \"X-Forwarded-For: evil.com\" --output {output}/xss/{target}_dalfox.txt",
-    "cat {output}/js/{target}_katana.txt | kxss > {output}/xss/{target}_kxss.txt"
-  ],
+  "Automated XSS Detection": {
+    "run_mode": "both",
+    "commands": [
+      "dalfox file {output}/params/{target}_params.txt --custom-header \"X-Forwarded-For: evil.com\" --output {output}/xss/{target}_dalfox.txt",
+      "cat {output}/js/{target}_katana.txt | kxss > {output}/xss/{target}_kxss.txt"
+    ]
+  },
 
-  "Automated SQL Injection Testing": [
-    "sqlmap -u 'http://{target}/page?id=1' -p id --batch --threads 10 --dbs --output-dir={output}/sqlmap/{target}"
-  ],
+  "Automated SQL Injection Testing": {
+    "run_mode": "both",
+    "commands": [
+      "sqlmap -u 'http://{target}/page?id=1' -p id --batch --threads 10 --dbs --output-dir={output}/sqlmap/{target}"
+    ]
+  },
 
-  "Automated SSRF Discovery": [
-    "nuclei -u https://{target} -tags ssrf -o {output}/ssrf/{target}_ssrf.txt",
-    "interactsh-client -v -o {output}/ssrf/{target}_interactsh.txt"
-  ],
+  "Automated SSRF Discovery": {
+    "run_mode": "both",
+    "commands": [
+      "nuclei -u https://{target} -tags ssrf -o {output}/ssrf/{target}_ssrf.txt",
+      "interactsh-client -v -o {output}/ssrf/{target}_interactsh.txt"
+    ]
+  },
 
-  "Automated LFI and RFI Detection": [
-    "nuclei -u http://{target} -tags lfi,rfi -o {output}/lfi/{target}_nuclei.txt"
-  ],
+  "Automated LFI and RFI Detection": {
+    "run_mode": "both",
+    "commands": [
+      "nuclei -u http://{target} -tags lfi,rfi -o {output}/lfi/{target}_nuclei.txt"
+    ]
+  },
 
-  "Automated Open Redirect Detection": [
-    "nuclei -u http://{target} -tags redirect -o {output}/redirects/{target}_nuclei.txt"
-  ],
+  "Automated Open Redirect Detection": {
+    "run_mode": "both",
+    "commands": [
+      "nuclei -u http://{target} -tags redirect -o {output}/redirects/{target}_nuclei.txt"
+    ]
+  },
 
-  "Automated Security Headers Check": [
-    "httpx -u http://{target} -sc -title -server -o {output}/headers/{target}_headers.txt",
-    "testssl.sh http://{target} > {output}/headers/{target}_testssl.txt"
-  ],
+  "Automated Security Headers Check": {
+    "run_mode": "both",
+    "commands": [
+      "httpx -u http://{target} -sc -title -server -o {output}/headers/{target}_headers.txt",
+      "testssl.sh http://{target} > {output}/headers/{target}_testssl.txt"
+    ]
+  },
 
-  "Automated Google Dorking": [
-    "googler --count 50 \"site:{target} inurl:admin\" > {output}/dorking/{target}_admin.txt",
-    "googler --count 50 \"site:{target} (ext:sql OR ext:db OR ext:bak)\" > {output}/dorking/{target}_db.txt",
-    "googler --count 50 \"site:{target} intitle:index.of\" > {output}/dorking/{target}_indexof.txt"
-  ],
+  "Automated Google Dorking": {
+    "run_mode": "both",
+    "commands": [
+      "googler --count 50 \"site:{target} inurl:admin\" > {output}/dorking/{target}_admin.txt",
+      "googler --count 50 \"site:{target} (ext:sql OR ext:db OR ext:bak)\" > {output}/dorking/{target}_db.txt",
+      "googler --count 50 \"site:{target} intitle:index.of\" > {output}/dorking/{target}_indexof.txt"
+    ]
+  },
 
-  "Automated GitHub Dorking": [
-    "github-dork -q {target} -t $GITHUB_TOKEN -o {output}/github/{target}_dorks.txt",
-    "trufflehog git --repo=https://github.com/search?q={target} --json > {output}/github/{target}_trufflehog.json"
-  ],
+  "Automated GitHub Dorking": {
+    "run_mode": "both",
+    "commands": [
+      "github-dork -q {target} -t $GITHUB_TOKEN -o {output}/github/{target}_dorks.txt",
+      "trufflehog git --repo=https://github.com/search?q={target} --json > {output}/github/{target}_trufflehog.json"
+    ]
+  },
 
-  "Automated API Recon": [
-    "kiterunner -u https://{target}/api -w {wordlist} -o {output}/api/{target}_kiterunner.txt",
-    "httpx -u https://{target}/api -title -status-code -tech-detect -o {output}/api/{target}_httpx.txt",
-    "nuclei -u https://{target}/api -tags api,exposure,token -o {output}/api/{target}_nuclei.txt"
-  ],
+  "Automated API Recon": {
+    "run_mode": "both",
+    "commands": [
+      "kiterunner -u https://{target}/api -w {wordlist} -o {output}/api/{target}_kiterunner.txt",
+      "httpx -u https://{target}/api -title -status-code -tech-detect -o {output}/api/{target}_httpx.txt",
+      "nuclei -u https://{target}/api -tags api,exposure,token -o {output}/api/{target}_nuclei.txt"
+    ]
+  },
 
-  "Automated Content Discovery": [
-    "gau {target} > {output}/urls/{target}_gau.txt",
-    "waybackurls {target} > {output}/urls/{target}_wayback.txt",
-    "hakrawler -url https://{target} -depth 3 -plain -scope subs -insecure -usewayback -o {output}/urls/{target}_hakrawler.txt"
-  ],
+  "Automated Content Discovery": {
+    "run_mode": "both",
+    "commands": [
+      "gau {target} > {output}/urls/{target}_gau.txt",
+      "waybackurls {target} > {output}/urls/{target}_wayback.txt",
+      "hakrawler -url https://{target} -depth 3 -plain -scope subs -insecure -usewayback -o {output}/urls/{target}_hakrawler.txt"
+    ]
+  },
 
-  "Automated S3 Bucket Enumeration": [
-    "s3scanner scan -b {target} -o {output}/s3/{target}_s3scanner.txt",
-    "awsbucketdump -t {target} -o {output}/s3/{target}_bucketdump.txt"
-  ],
+  "Automated S3 Bucket Enumeration": {
+    "run_mode": "both",
+    "commands": [
+      "s3scanner scan -b {target} -o {output}/s3/{target}_s3scanner.txt",
+      "awsbucketdump -t {target} -o {output}/s3/{target}_bucketdump.txt"
+    ]
+  },
 
-  "Automated Subdomain Takeover Detection": [
-    "subjack -w {output}/{target}_alive_subs.txt -t 100 -timeout 30 -ssl -c /path/to/fingerprints.json -o {output}/takeovers/{target}_subjack.txt",
-    "nuclei -l {output}/{target}_alive_subs.txt -tags takeover -o {output}/takeovers/{target}_nuclei.txt"
-  ],
+  "Automated Subdomain Takeover Detection": {
+    "run_mode": "both",
+    "commands": [
+      "subjack -w {output}/{target}_alive_subs.txt -t 100 -timeout 30 -ssl -c /path/to/fingerprints.json -o {output}/takeovers/{target}_subjack.txt",
+      "nuclei -l {output}/{target}_alive_subs.txt -tags takeover -o {output}/takeovers/{target}_nuclei.txt"
+    ]
+  },
 
-  "Automated CORS Misconfiguration Scan": [
-    "nuclei -u https://{target} -tags cors -o {output}/cors/{target}_cors.txt"
-  ],
+  "Automated CORS Misconfiguration Scan": {
+    "run_mode": "both",
+    "commands": [
+      "nuclei -u https://{target} -tags cors -o {output}/cors/{target}_cors.txt"
+    ]
+  },
 
-  "Automated Cloud Asset Enumeration": [
-    "cloud_enum -k API_KEY -t {target} -o {output}/cloud/{target}_cloudenum.txt"
-  ],
+  "Automated Cloud Asset Enumeration": {
+    "run_mode": "both",
+    "commands": [
+      "cloud_enum -k API_KEY -t {target} -o {output}/cloud/{target}_cloudenum.txt"
+    ]
+  },
 
-  "Automated DNS Recon": [
-    "dnsrecon -d {target} -a -j {output}/dns/{target}_dnsrecon.json",
-    "massdns -r resolvers.txt -t A -o S -w {output}/dns/{target}_massdns.txt {target}"
-  ],
+  "Automated DNS Recon": {
+    "run_mode": "both",
+    "commands": [
+      "dnsrecon -d {target} -a -j {output}/dns/{target}_dnsrecon.json",
+      "massdns -r resolvers.txt -t A -o S -w {output}/dns/{target}_massdns.txt {target}"
+    ]
+  },
 
-  "Automated Virtual Host Discovery": [
-    "vhostscan -t {target} -o {output}/vhosts/{target}_vhostscan.txt"
-  ],
+  "Automated Virtual Host Discovery": {
+    "run_mode": "both",
+    "commands": [
+      "vhostscan -t {target} -o {output}/vhosts/{target}_vhostscan.txt"
+    ]
+  },
 
-  "Automated Web Tech Fingerprinting": [
-    "wappalyzer -u https://{target} -o {output}/tech/{target}_wappalyzer.json",
-    "whatweb -v {target} > {output}/tech/{target}_whatweb.txt"
-  ],
+  "Automated Web Tech Fingerprinting": {
+    "run_mode": "both",
+    "commands": [
+      "wappalyzer -u https://{target} -o {output}/tech/{target}_wappalyzer.json",
+      "whatweb -v {target} > {output}/tech/{target}_whatweb.txt"
+    ]
+  },
 
-  "Automated Favicon Hashing": [
-    "favfreak -u https://{target} -o {output}/favicons/{target}_favfreak.txt"
-  ],
+  "Automated Favicon Hashing": {
+    "run_mode": "both",
+    "commands": [
+      "favfreak -u https://{target} -o {output}/favicons/{target}_favfreak.txt"
+    ]
+  },
 
-  "Automated Secret/Token Discovery": [
-    "trufflehog filesystem --directory {output}/js/ --json > {output}/js/{target}_trufflehog.json",
-    "gitleaks detect --source {output}/github/{target}_dorks.txt --report-path {output}/github/{target}_gitleaks.json"
-  ],
+  "Automated Secret/Token Discovery": {
+    "run_mode": "both",
+    "commands": [
+      "trufflehog filesystem --directory {output}/js/ --json > {output}/js/{target}_trufflehog.json",
+      "gitleaks detect --source {output}/github/{target}_dorks.txt --report-path {output}/github/{target}_gitleaks.json"
+    ]
+  },
 
-  "Automated Vulnerability Scanning": [
-    "nuclei -l {output}/{target}_alive_subs.txt -tags cve,exposure,xss,token -o {output}/vuln/{target}_nuclei.txt"
-  ]
+  "Automated Vulnerability Scanning": {
+    "run_mode": "both",
+    "commands": [
+      "nuclei -l {output}/{target}_alive_subs.txt -tags cve,exposure,xss,token -o {output}/vuln/{target}_nuclei.txt"
+    ]
+  }
 }

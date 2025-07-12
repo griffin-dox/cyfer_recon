@@ -101,7 +101,7 @@ def run_task_for_target(target: str, task: str, commands: List[str], output_dir:
 
 def run_tasks(targets: List[str], selected_tasks: List[str], tasks_config: Dict[str, Any], output_dir: str, concurrent: bool, console: Any, wordlists: dict = None, dry_run: bool = False, discord_webhook: str = None) -> None:
     """
-    Run all selected tasks for all targets, concurrently or sequentially, with progress bars.
+    Run all selected tasks for all targets, respecting individual task run_mode settings.
     For commands with {wordlist}, use the tool-specific wordlist from the mapping.
     If dry_run is True, print commands instead of executing them.
 
@@ -110,7 +110,7 @@ def run_tasks(targets: List[str], selected_tasks: List[str], tasks_config: Dict[
         selected_tasks (List[str]): List of task names to run.
         tasks_config (Dict[str, Any]): Task configuration dictionary.
         output_dir (str): Output directory for results.
-        concurrent (bool): Whether to run tasks concurrently.
+        concurrent (bool): Whether to run tasks concurrently (can be overridden by task run_mode).
         console (Any): Rich console for output.
         wordlists (dict, optional): Mapping of tool name to wordlist path. Defaults to None.
         dry_run (bool, optional): If True, print commands instead of running. Defaults to False.
@@ -121,10 +121,28 @@ def run_tasks(targets: List[str], selected_tasks: List[str], tasks_config: Dict[
     """
     if wordlists is None:
         wordlists = {}
+    
     jobs = []
     for target in targets:
         for task in selected_tasks:
-            commands = tasks_config.get(task, [])
+            task_config = tasks_config.get(task, [])
+            
+            # Handle both old format (list) and new format (dict with commands and run_mode)
+            if isinstance(task_config, list):
+                commands = task_config
+                run_mode = "both"  # Default for old format
+            else:
+                commands = task_config.get("commands", [])
+                run_mode = task_config.get("run_mode", "both")
+            
+            # Determine if this task should run concurrently
+            task_concurrent = concurrent
+            if run_mode == "sequential":
+                task_concurrent = False
+            elif run_mode == "concurrent":
+                task_concurrent = True
+            # If run_mode == "both", use the user's choice (task_concurrent = concurrent)
+            
             for cmd in commands:
                 if "{wordlist}" in cmd:
                     tool = cmd.split()[0]
@@ -135,31 +153,40 @@ def run_tasks(targets: List[str], selected_tasks: List[str], tasks_config: Dict[
                         cmd_wl = re.sub(r'(ffuf|gobuster|kiterunner)([^>]*)(-o\s*|>\s*)([^\s]+)',
                                         lambda m: f"{m.group(1)}{m.group(2)}{m.group(3)}{output_dir}/{m.group(1)}_{wl_name}.txt",
                                         cmd_wl)
-                        jobs.append((target, task, [cmd_wl]))
+                        jobs.append((target, task, [cmd_wl], task_concurrent))
                 else:
-                    jobs.append((target, task, [cmd]))
+                    jobs.append((target, task, [cmd], task_concurrent))
+    
     if dry_run:
         console.print("[yellow]Dry run mode: The following commands would be executed:")
-        for t, task, cmds in jobs:
-            console.print(f"[yellow]{t} - {task}: {cmds}")
+        for t, task, cmds, task_conc in jobs:
+            mode = "concurrent" if task_conc else "sequential"
+            console.print(f"[yellow]{t} - {task} ({mode}): {cmds}")
         return
 
     with Progress(SpinnerColumn(), TextColumn("{task.description}"), BarColumn(), TimeElapsedColumn(), TimeRemainingColumn()) as progress:
         parent_task_id = progress.add_task("Overall Progress", total=len(jobs))
-        if concurrent:
+        
+        # Group jobs by concurrency mode
+        concurrent_jobs = [(t, task, cmds) for t, task, cmds, task_conc in jobs if task_conc]
+        sequential_jobs = [(t, task, cmds) for t, task, cmds, task_conc in jobs if not task_conc]
+        
+        # Run concurrent jobs
+        if concurrent_jobs:
             with ThreadPoolExecutor() as executor:
                 futures = {
                     executor.submit(run_task_for_target, t, task, cmds, output_dir, console, progress, parent_task_id, discord_webhook): (t, task)
-                    for t, task, cmds in jobs
+                    for t, task, cmds in concurrent_jobs
                 }
                 for future in as_completed(futures):
                     try:
                         future.result()
                     except Exception as e:
                         console.print(f"[red]Error in task {futures[future]}: {e}")
-        else:
-            for t, task, cmds in jobs:
-                run_task_for_target(t, task, cmds, output_dir, console, progress, parent_task_id, discord_webhook)
+        
+        # Run sequential jobs
+        for t, task, cmds in sequential_jobs:
+            run_task_for_target(t, task, cmds, output_dir, console, progress, parent_task_id, discord_webhook)
 
 def deduplicate_subdomains(subdomain_files: list, output_file: str, console=None, sort_result=True):
     """Combine, deduplicate, and clean subdomain results from multiple files."""

@@ -320,10 +320,19 @@ def cli(
     
     if selected_tasks:
         # Handle task-based presets
-        wordlist_tasks = [task for task in selected_tasks if any("{wordlist}" in cmd for cmd in tasks_config[task])]
+        wordlist_tasks = []
+        for task in selected_tasks:
+            task_config = tasks_config[task]
+            # Handle both old format (list) and new format (dict with commands)
+            commands = task_config if isinstance(task_config, list) else task_config.get("commands", [])
+            if any("{wordlist}" in cmd for cmd in commands):
+                wordlist_tasks.append(task)
+        
         if wordlist_tasks:
             for task in wordlist_tasks:
-                for cmd in tasks_config[task]:
+                task_config = tasks_config[task]
+                commands = task_config if isinstance(task_config, list) else task_config.get("commands", [])
+                for cmd in commands:
                     if "{wordlist}" in cmd:
                         tool = cmd.split()[0]
                         # Use default from wordlists.json
@@ -401,12 +410,16 @@ def cli(
     output_folders = set()
     if selected_tasks:
         for task in selected_tasks:
-            for cmd in tasks_config[task]:
+            task_config = tasks_config[task]
+            commands = task_config if isinstance(task_config, list) else task_config.get("commands", [])
+            for cmd in commands:
                 matches = re.findall(r'\{output\}/([\w\-]+)/', cmd)
                 output_folders.update(matches)
         # Add known folders from commands (e.g., js, gitdump, etc.)
         for task in selected_tasks:
-            for cmd in tasks_config[task]:
+            task_config = tasks_config[task]
+            commands = task_config if isinstance(task_config, list) else task_config.get("commands", [])
+            for cmd in commands:
                 if '{output}/js/' in cmd:
                     output_folders.add('js')
                 if '{output}/gitdump/' in cmd:

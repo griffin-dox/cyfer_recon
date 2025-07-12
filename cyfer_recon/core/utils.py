@@ -28,7 +28,7 @@ def prepare_output_dirs(base_dir: str, target: str, selected_tasks: List[str], e
         'api', 'urls', 's3', 'takeovers', 'cors',
         'cloud', 'dns', 'vhosts', 'tech', 'favicons',
         'github', 'dorking', 'headers', 'redirects',
-        'lfi', 'vuln'
+        'lfi', 'vuln', 'secretfinder_results', 'linkfinder_results'
     ]
     # Add extra folders for output (e.g., custom folders, etc.)
     if extra_folders:
