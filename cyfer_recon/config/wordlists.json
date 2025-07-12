@@ -2,5 +2,6 @@
   "ffuf": "/usr/share/wordlists/dirbuster.txt",
   "gobuster": "/usr/share/wordlists/dirbuster.txt",
   "arjun": "/usr/share/wordlists/params.txt",
-  "kiterunner": "/usr/share/wordlists/api.txt"
+  "kiterunner": "/usr/share/wordlists/api.txt",
+  "nuclei": "/usr/share/nuclei-templates/cves/"
 }

@@ -3,6 +3,7 @@ import json
 import tempfile
 import urllib.request
 from typing import List, Optional
+import requests
 
 def load_targets(path: str) -> List[str]:
     """Load targets from a file, one per line."""
@@ -54,3 +55,25 @@ def download_file(url: str) -> str:
 def validate_local_file(path: str) -> bool:
     """Check if a local file exists and is readable."""
     return os.path.isfile(path) and os.access(path, os.R_OK)
+
+class ToolNotFoundError(Exception):
+    """Exception raised when a required tool is not found."""
+    pass
+
+class TaskExecutionError(Exception):
+    """Exception raised for errors during task execution."""
+    def __init__(self, tool, cmd, exit_code, stdout, stderr):
+        self.tool = tool
+        self.cmd = cmd
+        self.exit_code = exit_code
+        self.stdout = stdout
+        self.stderr = stderr
+        super().__init__(f"Error executing {tool}: {stderr}")
+
+def send_discord_notification(webhook_url: str, message: str) -> None:
+    """Send a notification to a Discord channel via webhook."""
+    try:
+        response = requests.post(webhook_url, json={"content": message})
+        response.raise_for_status()
+    except requests.RequestException as e:
+        raise RuntimeError(f"Failed to send Discord notification: {e}")

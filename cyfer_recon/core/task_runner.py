@@ -4,6 +4,7 @@ import re
 from typing import List, Dict, Any, Tuple
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from rich.progress import Progress, BarColumn, TextColumn, TimeElapsedColumn, SpinnerColumn, TimeRemainingColumn
+from cyfer_recon.core.utils import ToolNotFoundError, TaskExecutionError, send_discord_notification
 
 def get_tool_and_ext(cmd: str) -> Tuple[str, str]:
     """Extract tool name and output file extension from a command string."""
@@ -24,7 +25,7 @@ def get_tool_and_ext(cmd: str) -> Tuple[str, str]:
         ext = '.txt'
     return tool, ext
 
-def run_task_for_target(target: str, task: str, commands: List[str], output_dir: str, console: Any, progress: Progress = None, parent_task_id: int = None) -> None:
+def run_task_for_target(target: str, task: str, commands: List[str], output_dir: str, console: Any, progress: Progress = None, parent_task_id: int = None, discord_webhook: str = None) -> None:
     """
     Run all commands for a given target and task, saving output and logs.
     Shows a progress bar for each tool.
@@ -49,46 +50,34 @@ def run_task_for_target(target: str, task: str, commands: List[str], output_dir:
             def redir_repl(match):
                 return f'> "{result_file}"'
             cmd_fmt = re.sub(r'>\s*[^\s]+', redir_repl, cmd_fmt)
-        # log_file = os.path.join(logs_dir, f"{task.replace(' ', '_').lower()}.log")
-        bar_task_id = None
-        if progress is not None:
-            bar_task_id = progress.add_task(f"{tool}", status="Running")
+
         import shutil
         if shutil.which(tool) is None:
-            error_msg = f"[ERROR] Tool '{tool}' not found in PATH."
-            console.print(f"[red]{error_msg} Please install it before running this task.")
-            failed_cmds.append({
-                'tool': tool,
-                'cmd': cmd_fmt,
-                'exit_code': None,
-                'stdout': '',
-                'stderr': error_msg
-            })
-            continue
-        try:
-            if progress is not None and bar_task_id is not None:
-                progress.update(bar_task_id, status="Running")
-            process = subprocess.run(cmd_fmt, shell=True, capture_output=True, text=True)
-            if process.returncode == 0:
-                if progress is not None and bar_task_id is not None:
-                    progress.update(bar_task_id, status="Finished")
-            else:
-                if progress is not None and bar_task_id is not None:
-                    progress.update(bar_task_id, status="[red]Error")
-                failed_cmds.append({
-                    'tool': tool,
-                    'cmd': cmd_fmt,
-                    'exit_code': process.returncode,
-                    'stdout': process.stdout,
-                    'stderr': process.stderr
-                })
-                # Print concise error info
-                console.print(f"[red][{tool}] [bold]{task}[/bold] for [yellow]{target}[/yellow]: [white]Exit code:[/white] {process.returncode}\n[white]Command:[/white] {cmd_fmt}\n[white]Error:[/white] {process.stderr.strip().splitlines()[-1] if process.stderr.strip() else 'No stderr output.'}")
-        except Exception as e:
-            if progress is not None and bar_task_id is not None:
-                progress.update(bar_task_id, status="[red]Error")
-            error_msg = f"Exception running {cmd_fmt}: {e}"
+            error_msg = f"Tool '{tool}' not found in PATH."
             console.print(f"[red]{error_msg}")
+            if discord_webhook:
+                send_discord_notification(discord_webhook, f"[ERROR] {error_msg}")
+            raise ToolNotFoundError(error_msg)
+
+        try:
+            process = subprocess.run(cmd_fmt, shell=True, capture_output=True, text=True)
+            if process.returncode != 0:
+                raise TaskExecutionError(tool, cmd_fmt, process.returncode, process.stdout, process.stderr)
+        except TaskExecutionError as e:
+            console.print(f"[red]{e}")
+            if discord_webhook:
+                send_discord_notification(discord_webhook, f"[ERROR] {e}")
+            failed_cmds.append({
+                'tool': e.tool,
+                'cmd': e.cmd,
+                'exit_code': e.exit_code,
+                'stdout': e.stdout,
+                'stderr': e.stderr
+            })
+        except Exception as e:
+            console.print(f"[red]Unexpected error: {e}")
+            if discord_webhook:
+                send_discord_notification(discord_webhook, f"[ERROR] Unexpected error: {e}")
             failed_cmds.append({
                 'tool': tool,
                 'cmd': cmd_fmt,
@@ -99,14 +88,18 @@ def run_task_for_target(target: str, task: str, commands: List[str], output_dir:
         finally:
             if progress is not None and bar_task_id is not None:
                 progress.remove_task(bar_task_id)
-        if progress is not None and parent_task_id is not None:
-            progress.advance(parent_task_id, 1)
+
+    if failed_cmds and discord_webhook:
+        send_discord_notification(discord_webhook, f"[ERROR] Failed commands for {target} - {task}: {failed_cmds}")
+
+    if progress is not None and parent_task_id is not None:
+        progress.advance(parent_task_id, 1)
     if failed_cmds:
         console.print(f"[red]Failed commands for {target} - {task}:")
         for fc in failed_cmds:
             console.print(f"[red]  Tool: {fc['tool']} | Exit code: {fc['exit_code']} | Error: {fc['stderr'].strip().splitlines()[-1] if fc['stderr'].strip() else 'No stderr output.'}")
 
-def run_tasks(targets: List[str], selected_tasks: List[str], tasks_config: Dict[str, Any], output_dir: str, concurrent: bool, console: Any, wordlists: dict = None, dry_run: bool = False) -> None:
+def run_tasks(targets: List[str], selected_tasks: List[str], tasks_config: Dict[str, Any], output_dir: str, concurrent: bool, console: Any, wordlists: dict = None, dry_run: bool = False, discord_webhook: str = None) -> None:
     """
     Run all selected tasks for all targets, concurrently or sequentially, with progress bars.
     For commands with {wordlist}, use the tool-specific wordlist from the mapping.
@@ -121,6 +114,7 @@ def run_tasks(targets: List[str], selected_tasks: List[str], tasks_config: Dict[
         console (Any): Rich console for output.
         wordlists (dict, optional): Mapping of tool name to wordlist path. Defaults to None.
         dry_run (bool, optional): If True, print commands instead of running. Defaults to False.
+        discord_webhook (str, optional): Discord webhook URL for notifications. Defaults to None.
 
     Returns:
         None
@@ -138,7 +132,6 @@ def run_tasks(targets: List[str], selected_tasks: List[str], tasks_config: Dict[
                     if wordlist:
                         wl_name = os.path.splitext(os.path.basename(wordlist))[0]
                         cmd_wl = cmd.replace("{wordlist}", wordlist)
-                        # Add output file suffix for wordlist
                         cmd_wl = re.sub(r'(ffuf|gobuster|kiterunner)([^>]*)(-o\s*|>\s*)([^\s]+)',
                                         lambda m: f"{m.group(1)}{m.group(2)}{m.group(3)}{output_dir}/{m.group(1)}_{wl_name}.txt",
                                         cmd_wl)
@@ -148,55 +141,25 @@ def run_tasks(targets: List[str], selected_tasks: List[str], tasks_config: Dict[
     if dry_run:
         console.print("[yellow]Dry run mode: The following commands would be executed:")
         for t, task, cmds in jobs:
-            for cmd in cmds:
-                console.print(f"[cyan]{task}[/cyan] for [green]{t}[/green]: [white]{cmd}[/white]")
+            console.print(f"[yellow]{t} - {task}: {cmds}")
         return
-    progress_columns = [
-        SpinnerColumn(),
-        TextColumn("{task.description}", justify="right"),
-        BarColumn(),
-        TextColumn("[bold]{task.fields[status]}", justify="left"),
-        TimeElapsedColumn(),
-        TimeRemainingColumn(),  # ETA column
-    ]
-    with Progress(*progress_columns) as progress:
-        parent_task_id = progress.add_task("All Tasks", total=len(jobs), status="Running")
-        failed_jobs = []
-        def run_job(t, task, cmds):
-            job_failed = False
-            for cmd in cmds:
-                tool, _ = get_tool_and_ext(cmd)
-                bar_task_id = progress.add_task(f"{tool}", status="Running")
-                progress.update(bar_task_id, status="Running")
-                try:
-                    process = subprocess.run(cmd.replace('{target}', t).replace('{output}', output_dir), shell=True, capture_output=True, text=True)
-                    if process.returncode == 0:
-                        progress.update(bar_task_id, status="Finished")
-                    else:
-                        progress.update(bar_task_id, status="[red]Error")
-                        job_failed = True
-                except Exception as e:
-                    progress.update(bar_task_id, status="[red]Error")
-                    console.print(f"[red]Error running {cmd}: {e}")
-                    job_failed = True
-                finally:
-                    progress.remove_task(bar_task_id)
-            progress.advance(parent_task_id, 1)
-            if job_failed:
-                failed_jobs.append((t, task))
-            console.print(f"[green]Finished {task} for {t}")
+
+    with Progress(SpinnerColumn(), TextColumn("{task.description}"), BarColumn(), TimeElapsedColumn(), TimeRemainingColumn()) as progress:
+        parent_task_id = progress.add_task("Overall Progress", total=len(jobs))
         if concurrent:
             with ThreadPoolExecutor() as executor:
-                futures = [executor.submit(run_job, t, task, cmds) for t, task, cmds in jobs]
-                for _ in as_completed(futures):
-                    pass
+                futures = {
+                    executor.submit(run_task_for_target, t, task, cmds, output_dir, console, progress, parent_task_id, discord_webhook): (t, task)
+                    for t, task, cmds in jobs
+                }
+                for future in as_completed(futures):
+                    try:
+                        future.result()
+                    except Exception as e:
+                        console.print(f"[red]Error in task {futures[future]}: {e}")
         else:
             for t, task, cmds in jobs:
-                run_job(t, task, cmds)
-    if failed_jobs:
-        console.print("[red]Summary of failed jobs:")
-        for t, task in failed_jobs:
-            console.print(f"[red]  {task} for {t}")
+                run_task_for_target(t, task, cmds, output_dir, console, progress, parent_task_id, discord_webhook)
 
 def deduplicate_subdomains(subdomain_files: list, output_file: str, console=None, sort_result=True):
     """Combine, deduplicate, and clean subdomain results from multiple files."""
@@ -267,3 +230,108 @@ def postprocess_subdomains(target_dir: str, console=None, skip_live_check=False,
     if not skip_live_check:
         live_file = os.path.join(target_dir, 'live_subdomains.txt')
         check_live_subdomains(unique_file, live_file, console=console, tool_preference=tool_preference, status_codes=status_codes)
+
+def run_custom_commands(target: str, commands: List[str], output_dir: str, concurrent: bool, console: Any, wordlists: dict = None, dry_run: bool = False, discord_webhook: str = None) -> None:
+    """
+    Run custom commands for a target with progress bars.
+    
+    Args:
+        target (str): Target domain/host.
+        commands (List[str]): List of commands to run.
+        output_dir (str): Output directory for results.
+        concurrent (bool): Whether to run commands concurrently.
+        console (Any): Rich console for output.
+        wordlists (dict, optional): Mapping of tool name to wordlist path. Defaults to None.
+        dry_run (bool, optional): If True, print commands instead of running. Defaults to False.
+        discord_webhook (str, optional): Discord webhook URL for notifications. Defaults to None.
+    """
+    if wordlists is None:
+        wordlists = {}
+    
+    # Process commands and substitute placeholders
+    processed_commands = []
+    for cmd in commands:
+        # Replace target placeholder
+        cmd_processed = cmd.replace('{target}', target).replace('{output}', output_dir)
+        
+        # Handle wordlist placeholder
+        if "{wordlist}" in cmd_processed:
+            tool = cmd.split()[0]
+            wordlist = wordlists.get(tool)
+            if wordlist:
+                cmd_processed = cmd_processed.replace("{wordlist}", wordlist)
+            else:
+                console.print(f"[yellow]Warning: No wordlist configured for {tool}, skipping command.")
+                continue
+        
+        processed_commands.append(cmd_processed)
+    
+    if dry_run:
+        console.print(f"[yellow]Dry run mode - commands for {target}:")
+        for cmd in processed_commands:
+            console.print(f"[yellow]  {cmd}")
+        return
+    
+    # Execute commands
+    with Progress(SpinnerColumn(), TextColumn("{task.description}"), BarColumn(), TimeElapsedColumn(), TimeRemainingColumn()) as progress:
+        parent_task_id = progress.add_task("Overall Progress", total=len(processed_commands))
+        
+        failed_cmds = []
+        
+        if concurrent:
+            with ThreadPoolExecutor() as executor:
+                futures = {
+                    executor.submit(execute_single_command, cmd, output_dir, console, discord_webhook): cmd
+                    for cmd in processed_commands
+                }
+                for future in as_completed(futures):
+                    try:
+                        future.result()
+                    except Exception as e:
+                        failed_cmds.append({"cmd": futures[future], "error": str(e)})
+                        console.print(f"[red]Error in command {futures[future]}: {e}")
+                    finally:
+                        progress.advance(parent_task_id, 1)
+        else:
+            for cmd in processed_commands:
+                try:
+                    execute_single_command(cmd, output_dir, console, discord_webhook)
+                except Exception as e:
+                    failed_cmds.append({"cmd": cmd, "error": str(e)})
+                    console.print(f"[red]Error in command {cmd}: {e}")
+                finally:
+                    progress.advance(parent_task_id, 1)
+        
+        if failed_cmds and discord_webhook:
+            send_discord_notification(discord_webhook, f"[ERROR] Failed commands for {target}: {failed_cmds}")
+
+def execute_single_command(cmd: str, output_dir: str, console: Any, discord_webhook: str = None) -> None:
+    """Execute a single command with error handling."""
+    tool = cmd.split()[0]
+    
+    # Check if tool exists
+    import shutil
+    if shutil.which(tool) is None:
+        error_msg = f"Tool '{tool}' not found in PATH."
+        console.print(f"[red]{error_msg}")
+        if discord_webhook:
+            send_discord_notification(discord_webhook, f"[ERROR] {error_msg}")
+        raise ToolNotFoundError(error_msg)
+    
+    # Ensure output directory exists
+    os.makedirs(output_dir, exist_ok=True)
+    
+    try:
+        process = subprocess.run(cmd, shell=True, capture_output=True, text=True, cwd=output_dir)
+        if process.returncode != 0:
+            raise TaskExecutionError(tool, cmd, process.returncode, process.stdout, process.stderr)
+    except TaskExecutionError as e:
+        console.print(f"[red]{e}")
+        if discord_webhook:
+            send_discord_notification(discord_webhook, f"[ERROR] {e}")
+        raise
+    except Exception as e:
+        console.print(f"[red]Unexpected error: {e}")
+        if discord_webhook:
+            send_discord_notification(discord_webhook, f"[ERROR] Unexpected error: {e}")
+        raise

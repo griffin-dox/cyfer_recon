@@ -1,0 +1,43 @@
+{
+  "Custom Preset Examples": {
+    "description": "Example custom presets - you can edit these or create new ones",
+    "presets": {
+      "My Quick Scan": {
+        "description": "Fast custom scan with specific tools",
+        "commands": [
+          "nmap -sS -sV -T4 -p- {target} -oN {output}/quick_nmap_{target}.txt",
+          "httpx -u https://{target} -sc -title -o {output}/quick_httpx_{target}.txt",
+          "nuclei -u https://{target} -tags cve,exposure -o {output}/quick_nuclei_{target}.txt"
+        ]
+      },
+      "My Subdomain Hunt": {
+        "description": "Custom subdomain enumeration workflow",
+        "commands": [
+          "subfinder -d {target} -silent -o {output}/my_subfinder_{target}.txt",
+          "assetfinder --subs-only {target} | tee {output}/my_assetfinder_{target}.txt",
+          "cat {output}/my_*_{target}.txt | sort -u | dnsx -silent -o {output}/my_alive_subs_{target}.txt",
+          "httpx -l {output}/my_alive_subs_{target}.txt -sc -title -o {output}/my_httpx_subs_{target}.txt"
+        ]
+      },
+      "My API Security Test": {
+        "description": "Comprehensive API security testing",
+        "commands": [
+          "kiterunner -u https://{target}/api -w {wordlist} -o {output}/my_api_{target}.txt",
+          "arjun -u https://{target}/api -o {output}/my_params_{target}.txt",
+          "nuclei -u https://{target}/api -tags api,exposure,token -o {output}/my_api_vuln_{target}.txt",
+          "dalfox -u https://{target}/api -o {output}/my_api_xss_{target}.txt"
+        ]
+      },
+      "My Web App Deep Scan": {
+        "description": "Thorough web application testing",
+        "commands": [
+          "httpx -u https://{target} -sc -title -tech-detect -o {output}/my_web_{target}.txt",
+          "whatweb -v {target} > {output}/my_whatweb_{target}.txt",
+          "nikto -h {target} -output {output}/my_nikto_{target}.txt",
+          "ffuf -w {wordlist} -u https://{target}/FUZZ -mc 200,301,302,403,404 -o {output}/my_ffuf_{target}.json -of json",
+          "nuclei -u https://{target} -tags cve,exposure,xss,sqli -o {output}/my_web_vuln_{target}.txt"
+        ]
+      }
+    }
+  }
+}
