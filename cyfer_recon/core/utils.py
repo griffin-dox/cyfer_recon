@@ -2,8 +2,9 @@ import os
 import json
 import tempfile
 import urllib.request
+import urllib.parse
+import urllib.error
 from typing import List, Optional
-import requests
 
 def load_targets(path: str) -> List[str]:
     """Load targets from a file, one per line."""
@@ -80,7 +81,20 @@ class TaskExecutionError(Exception):
 def send_discord_notification(webhook_url: str, message: str) -> None:
     """Send a notification to a Discord channel via webhook."""
     try:
-        response = requests.post(webhook_url, json={"content": message})
-        response.raise_for_status()
-    except requests.RequestException as e:
+        # Prepare the data
+        data = json.dumps({"content": message}).encode('utf-8')
+        
+        # Create the request
+        req = urllib.request.Request(
+            webhook_url,
+            data=data,
+            headers={'Content-Type': 'application/json'}
+        )
+        
+        # Send the request
+        with urllib.request.urlopen(req) as response:
+            if response.status >= 400:
+                raise RuntimeError(f"Discord webhook returned status {response.status}")
+                
+    except (urllib.error.URLError, urllib.error.HTTPError, Exception) as e:
         raise RuntimeError(f"Failed to send Discord notification: {e}")

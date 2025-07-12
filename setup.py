@@ -15,7 +15,6 @@ setup(
         'typer>=0.6.0',
         'rich>=12.0.0',
         'questionary>=1.8.0',
-        'requests>=2.25.0',
     ],
     entry_points={
         'console_scripts': [
@@ -25,7 +24,7 @@ setup(
     author='Griffin Dox',  # Update to your real name or organization
     description='Cybersecurity Recon Automation CLI Tool',
     url='https://github.com/griffin-dox/cyfer_recon',  # Update to your real repo URL
-    python_requires='>=3.7',  # Compatible with most systems
+    python_requires='>=3.7',  # Compatible with Python 3.7 through 3.13+
     classifiers=[
         'Programming Language :: Python :: 3',
         'License :: OSI Approved :: MIT License',
