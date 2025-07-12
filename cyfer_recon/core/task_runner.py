@@ -86,8 +86,8 @@ def run_task_for_target(target: str, task: str, commands: List[str], output_dir:
                 'stderr': str(e)
             })
         finally:
-            if progress is not None and bar_task_id is not None:
-                progress.remove_task(bar_task_id)
+            # Progress is handled at the parent task level
+            pass
 
     if failed_cmds and discord_webhook:
         send_discord_notification(discord_webhook, f"[ERROR] Failed commands for {target} - {task}: {failed_cmds}")
