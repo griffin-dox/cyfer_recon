@@ -1,6 +1,6 @@
 {
   "Automated Subdomain Enumeration": {
-    "run_mode": "both",
+    "run_mode": "sequential",
     "commands": [
       "subfinder -d {target} -silent -o {output}/{target}_subfinder.txt",
       "assetfinder --subs-only {target} | tee {output}/{target}_assetfinder.txt",
@@ -34,14 +34,14 @@
   },
 
   "Automated JavaScript Analysis": {
-    "run_mode": "both",
+    "run_mode": "sequential",
     "commands": [
       "katana -u https://{target} -d 5 -jc | grep '\\.js$' | tee {output}/js/alljs.txt",
       "echo https://{target} | gau | grep '\\.js$' | anew {output}/js/alljs.txt",
       "cat {output}/js/alljs.txt | uro | sort -u | httpx-toolkit -mc 200 -o {output}/js/live_output.txt",
       "cat {output}/js/live_output.txt | jsleak -s -l -k > {output}/js/jsleak.txt",
-      "cat {output}/js/live_output.txt | nuclei -t /nuclei-templates/prsnl/credentials-disclosure-all.yaml -c 30 -o {output}/js/nuclei_creds.txt",
-      "cat {output}/js/live_output.txt | nuclei -t /nuclei-templates/http/exposures -c 30 -o {output}/js/nuclei_exposures.txt",
+      "cat {output}/js/live_output.txt | nuclei -t ~/nuclei-templates/prsnl/credentials-disclosure-all.yaml -c 30 -o {output}/js/nuclei_creds.txt",
+      "cat {output}/js/live_output.txt | nuclei -t ~/nuclei-templates/http/exposures -c 30 -o {output}/js/nuclei_exposures.txt",
       "cat {output}/js/live_output.txt | xargs -I{} python3 SecretFinder.py -i \"{}\" -o {output}/js/secretfinder_results/",
       "cat {output}/js/live_output.txt | xargs -I{} python3 linkfinder.py -i \"{}\" -o {output}/js/linkfinder_results/",
       "cat {output}/js/live_output.txt | xargs -I{} curl -s \"{}\" | grep -E 'localStorage|sessionStorage' >> {output}/js/local_storage_refs.txt"
@@ -57,7 +57,7 @@
   },
 
   "Automated XSS Detection": {
-    "run_mode": "both",
+    "run_mode": "sequential",
     "commands": [
       "dalfox file {output}/params/{target}_params.txt --custom-header \"X-Forwarded-For: evil.com\" --output {output}/xss/{target}_dalfox.txt",
       "cat {output}/js/{target}_katana.txt | kxss > {output}/xss/{target}_kxss.txt"
@@ -128,7 +128,7 @@
   },
 
   "Automated Content Discovery": {
-    "run_mode": "both",
+    "run_mode": "sequential",
     "commands": [
       "gau {target} > {output}/urls/{target}_gau.txt",
       "waybackurls {target} > {output}/urls/{target}_wayback.txt",
@@ -145,7 +145,7 @@
   },
 
   "Automated Subdomain Takeover Detection": {
-    "run_mode": "both",
+    "run_mode": "sequential",
     "commands": [
       "subjack -w {output}/{target}_alive_subs.txt -t 100 -timeout 30 -ssl -c /path/to/fingerprints.json -o {output}/takeovers/{target}_subjack.txt",
       "nuclei -l {output}/{target}_alive_subs.txt -tags takeover -o {output}/takeovers/{target}_nuclei.txt"
@@ -197,7 +197,7 @@
   },
 
   "Automated Secret/Token Discovery": {
-    "run_mode": "both",
+    "run_mode": "sequential",
     "commands": [
       "trufflehog filesystem --directory {output}/js/ --json > {output}/js/{target}_trufflehog.json",
       "gitleaks detect --source {output}/github/{target}_dorks.txt --report-path {output}/github/{target}_gitleaks.json"

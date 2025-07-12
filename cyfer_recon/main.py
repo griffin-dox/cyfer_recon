@@ -538,13 +538,35 @@ def command_edit():
     if not task:
         console.print("[red]No task selected. Exiting.")
         return
-    commands = tasks[task]
+    
+    # Handle both old and new task structure
+    task_data = tasks[task]
+    if isinstance(task_data, dict) and 'commands' in task_data:
+        # New structure with run_mode and commands
+        commands = task_data['commands']
+        run_mode = task_data.get('run_mode', 'both')
+    else:
+        # Old structure - just array of commands
+        commands = task_data
+        run_mode = 'both'
+    
     console.print(f"[bold cyan]Editing commands for {task}[/bold cyan]")
+    console.print(f"[yellow]Current run mode: {run_mode}[/yellow]")
+    
+    # Edit run mode
+    new_run_mode = questionary.select(
+        "Select run mode:",
+        choices=["both", "sequential", "concurrent"],
+        default=run_mode
+    ).ask()
+    
+    # Edit commands
     new_commands = []
     for i, cmd in enumerate(commands, 1):
         new_cmd = questionary.text(f"Command {i}:", default=cmd).ask()
         if new_cmd:
             new_commands.append(new_cmd)
+    
     # Option to add more commands
     while True:
         add_more = questionary.confirm("Add another command?", default=False).ask()
@@ -553,10 +575,16 @@ def command_edit():
         extra_cmd = questionary.text("Enter new command:").ask()
         if extra_cmd:
             new_commands.append(extra_cmd)
-    tasks[task] = new_commands
+    
+    # Update task with new structure
+    tasks[task] = {
+        "run_mode": new_run_mode,
+        "commands": new_commands
+    }
+    
     with open(tasks_path, 'w', encoding='utf-8') as f:
         json.dump(tasks, f, indent=2)
-    console.print(f"[green]Commands for {task} updated!")
+    console.print(f"[green]Commands and run mode for {task} updated!")
 
 @app.command()
 def preset_edit():
