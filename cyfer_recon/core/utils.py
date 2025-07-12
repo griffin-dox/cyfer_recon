@@ -22,8 +22,15 @@ def prepare_output_dirs(base_dir: str, target: str, selected_tasks: List[str], e
     Returns the path to the output directory.
     """
     os.makedirs(base_dir, exist_ok=True)
-    subfolders = ['subdomains', 'ports', 'screenshots', 'logs']
-    # Add extra folders for output (e.g., js, gitdump, etc.)
+    subfolders = [
+        'subdomains', 'ports', 'screenshots', 'logs',
+        'js', 'params', 'xss', 'sqlmap', 'ssrf', 
+        'api', 'urls', 's3', 'takeovers', 'cors',
+        'cloud', 'dns', 'vhosts', 'tech', 'favicons',
+        'github', 'dorking', 'headers', 'redirects',
+        'lfi', 'vuln'
+    ]
+    # Add extra folders for output (e.g., custom folders, etc.)
     if extra_folders:
         for folder in extra_folders:
             if folder not in subfolders:
