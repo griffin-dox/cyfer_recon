@@ -11,7 +11,7 @@ A modular, extensible Python CLI tool for cybersecurity and bug bounty automatio
 - **pipx** (recommended for global CLI install)
 - **git**
 - **Linux tools**: Many recon tools require `apt`, `go`, or other Linux utilities. See [Supported Recon Tasks](#️-supported-recon-tasks).
-- **Recon tools**: You must install all required recon tools manually. The CLI will list missing tools and provide install commands for Linux and Windows, plus extra info for global setup (see below).
+- **Recon tools**: You must install all required recon tools manually. The CLI will list missing tools and provide install commands for Linux and Windows, plus extra info for global setup (see below). Note: Some Python-based tools like linkfinder and SecretFinder need to be installed separately from their respective GitHub repositories.
 
 ### For Linux/Kali/WSL Users
 1. **Clone the repo:**
