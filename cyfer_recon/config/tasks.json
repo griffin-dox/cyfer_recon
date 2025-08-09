@@ -38,12 +38,14 @@
     "commands": [
       "katana -u https://{target} -d 5 -jc | grep '\\.js$' | tee {output}/js/alljs.txt",
       "echo https://{target} | gau | grep '\\.js$' | anew {output}/js/alljs.txt",
-      "cat {output}/js/alljs.txt | uro | sort -u | httpx-toolkit -mc 200 -o {output}/js/live_output.txt",
+      "cat {output}/js/alljs.txt | uro | sort -u | httpx -mc 200 -silent | tee {output}/js/live_output.txt",
       "cat {output}/js/live_output.txt | jsleak -s -l -k > {output}/js/jsleak.txt",
-      "cat {output}/js/live_output.txt | nuclei -t ~/nuclei-templates/prsnl/credentials-disclosure-all.yaml -c 30 -o {output}/js/nuclei_creds.txt",
-      "cat {output}/js/live_output.txt | nuclei -t ~/nuclei-templates/http/exposures -c 30 -o {output}/js/nuclei_exposures.txt",
-      "cat {output}/js/live_output.txt | xargs -I{} python3 SecretFinder.py -i \"{}\" -o {output}/js/secretfinder_results/",
-      "cat {output}/js/live_output.txt | xargs -I{} python3 linkfinder.py -i \"{}\" -o {output}/js/linkfinder_results/",
+      "cat {output}/js/live_output.txt | nuclei -t nuclei-templates/http/exposures/tokens -c 30 -o {output}/js/nuclei_creds.txt",
+      "cat {output}/js/live_output.txt | nuclei -t nuclei-templates/http/exposures -c 30 -o {output}/js/nuclei_exposures.txt",
+      "cat {output}/js/live_output.txt | grep -v '^$' | while read url; do echo \"Processing: $url\" && python3 /opt/linkfinder/linkfinder.py -i \"$url\" -o cli >> {output}/js/linkfinder_endpoints.txt 2>/dev/null || echo \"Failed: $url\"; done",
+      "cat {output}/js/live_output.txt | grep -v '^$' | while read url; do python3 /opt/linkfinder/linkfinder.py -i \"$url\" -r '^/api/' -o cli >> {output}/js/linkfinder_api_endpoints.txt 2>/dev/null; done",
+      "cat {output}/js/live_output.txt | grep -v '^$' | while read url; do python3 /opt/linkfinder/linkfinder.py -i \"$url\" -o cli 2>/dev/null | grep -E '(config|admin|auth|login|api|key|secret|token)' >> {output}/js/linkfinder_sensitive_endpoints.txt; done",
+      "cat {output}/js/live_output.txt | xargs -I{} curl -s \"{}\" | grep -E '(api[_-]?key|secret|token|password|auth|credential|access[_-]?token)' -i >> {output}/js/manual_secrets.txt",
       "cat {output}/js/live_output.txt | xargs -I{} curl -s \"{}\" | grep -E 'localStorage|sessionStorage' >> {output}/js/local_storage_refs.txt"
     ]
   },
@@ -102,11 +104,11 @@
   },
 
   "Automated Google Dorking": {
-    "run_mode": "both",
+    "run_mode": "sequential",
     "commands": [
-      "googler --count 50 \"site:{target} inurl:admin\" > {output}/dorking/{target}_admin.txt",
-      "googler --count 50 \"site:{target} (ext:sql OR ext:db OR ext:bak)\" > {output}/dorking/{target}_db.txt",
-      "googler --count 50 \"site:{target} intitle:index.of\" > {output}/dorking/{target}_indexof.txt"
+      "googler --delay=7 --timeout=30 --np \"site:{target} inurl:admin\" > {output}/dorking/{target}_admin.txt",
+      "googler --delay=7 --timeout=30 --np \"site:{target} (ext:sql OR ext:db OR ext:bak)\" > {output}/dorking/{target}_db.txt",
+      "googler --delay=7 --timeout=30 --np \"site:{target} intitle:index.of\" > {output}/dorking/{target}_indexof.txt"
     ]
   },
 
